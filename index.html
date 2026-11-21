@@ -1,29 +1,228 @@
 <!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101827"><title>One Piece Card Collection</title>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827">
+<meta name="description" content="Catalogue multilingue One Piece Card Game pour suivre gratuitement sa collection.">
+<title>One Piece Card Collection</title>
 <style>
-:root{color-scheme:dark;--panel:#131e30;--text:#f4f7fb;--muted:#9eacc0;--gold:#f5c451;--line:#2b3a50}*{box-sizing:border-box}body{margin:0;background:linear-gradient(140deg,#101b2d,#080d17 60%);color:var(--text);font:15px system-ui,Arial,sans-serif}header{text-align:center;padding:25px 14px;background:#111c2d;border-bottom:1px solid var(--line)}h1{margin:0;color:var(--gold);font-size:clamp(24px,5vw,38px)}header p,.note{color:var(--muted)}main{max-width:1300px;margin:auto;padding:16px}.stats,.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}.stat,.filters{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px}.stat b{color:var(--gold);font-size:20px}input,select,button{font:inherit;color:var(--text);background:#0c1524;border:1px solid var(--line);border-radius:9px;padding:10px;min-width:0}button{background:#263954}.filters>*{flex:1 1 145px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}.card img{width:100%;aspect-ratio:2/3;object-fit:contain;background:#080d16}.info{padding:9px;display:grid;gap:5px}.name{font-weight:700}.id{color:var(--gold);font-size:12px}.meta{color:var(--muted);font-size:12px}.own{display:flex;gap:8px;align-items:center;padding-top:5px}.own input{width:18px;height:18px}#status{text-align:center;padding:15px;color:var(--muted)}@media(max-width:430px){main{padding:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
-</style></head><body><header><h1>☠ One Piece Card Collection</h1><p>Ton catalogue de cartes • coche celles que tu possèdes</p></header><main>
-<div class="stats"><div class="stat"><b id="ownedCount">0</b><br>Possédées</div><div class="stat"><b id="totalCount">0</b><br>Cartes chargées</div><div class="stat"><b id="percent">0%</b><br>Collection</div></div>
-<section class="filters"><input id="search" placeholder="Nom ou numéro de carte…"><select id="language"><option value="french">Français</option><option value="english">English</option><option value="japanese">日本語</option><option value="chinese-hongkong">中文（香港）</option><option value="chinese-taiwan">中文（台灣）</option><option value="thai">ไทย</option></select><select id="set"><option value="">Toutes les extensions / decks</option></select><select id="category"><option value="">Tous les types</option></select><select id="ownership"><option value="">Toute la collection</option><option value="missing">À obtenir</option><option value="owned">Possédées</option></select><button id="export">Exporter</button><button id="importBtn">Importer</button><input id="importFile" type="file" accept="application/json" hidden></section>
-<p class="note">Catalogue communautaire multilingue. Les cartes et illustrations dépendent des données publiées par la source ; l'exhaustivité des promos et des dernières sorties reste à contrôler.</p><div id="status">Chargement du catalogue…</div><section id="cards" class="grid"></section></main>
+:root{color-scheme:dark;--panel:#131e30;--panel2:#0c1524;--text:#f4f7fb;--muted:#9eacc0;--gold:#f5c451;--line:#2b3a50;--green:#69d6a2}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(140deg,#101b2d,#080d17 60%);color:var(--text);font:15px system-ui,Arial,sans-serif}
+header{text-align:center;padding:25px 14px;background:#111c2d;border-bottom:1px solid var(--line)}
+h1{margin:0;color:var(--gold);font-size:clamp(24px,5vw,38px)}
+header p,.note,.subtle{color:var(--muted)}
+main{max-width:1450px;margin:auto;padding:16px}
+.stats,.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.stat,.filters{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px}
+.stat{min-width:125px;flex:1}
+.stat b{color:var(--gold);font-size:20px}
+input,select,button{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px;min-width:0}
+button{background:#263954;cursor:pointer}
+button:hover{border-color:var(--gold)}
+.filters>*{flex:1 1 145px}
+.filters input[type=file]{display:none}
+.note{font-size:13px;line-height:1.5;margin:10px 2px 14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:0}
+.card img{display:block;width:100%;aspect-ratio:2/3;object-fit:contain;background:#080d16}
+.info{padding:9px;display:grid;gap:5px}
+.name{font-weight:700;overflow-wrap:anywhere}
+.id{color:var(--gold);font-size:12px}
+.meta{color:var(--muted);font-size:12px;line-height:1.4}
+.variant{color:#f5d98a;font-size:11px}
+.own{display:flex;gap:8px;align-items:center;padding-top:5px;font-size:13px}
+.own input{width:18px;height:18px;accent-color:var(--green)}
+#status{text-align:center;padding:15px;color:var(--muted)}
+#status.error{color:#ff9b9b}
+footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);font-size:12px}
+@media(max-width:430px){main{padding:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.stat{min-width:calc(33% - 8px);padding:9px}.stat b{font-size:18px}}
+</style>
+</head>
+<body>
+<header>
+<h1>☠ One Piece Card Collection</h1>
+<p>Ton catalogue de cartes • coche chaque version que tu possèdes</p>
+</header>
+<main>
+<div class="stats">
+<div class="stat"><b id="ownedCount">0</b><br>Possédées dans cette langue</div>
+<div class="stat"><b id="totalCount">0</b><br>Versions chargées</div>
+<div class="stat"><b id="percent">0%</b><br>Collection</div>
+</div>
+<section class="filters" aria-label="Filtres du catalogue">
+<input id="search" type="search" placeholder="Nom, numéro, extension…">
+<select id="language" aria-label="Langue">
+<option value="french">Français</option>
+<option value="english">English</option>
+<option value="japanese">日本語</option>
+<option value="chinese-hongkong">中文（香港）</option>
+<option value="chinese-taiwan">中文（台灣）</option>
+<option value="thai">ไทย</option>
+</select>
+<select id="set" aria-label="Extension"><option value="">Toutes les extensions / decks</option></select>
+<select id="category" aria-label="Type"><option value="">Tous les types</option></select>
+<select id="rarity" aria-label="Rareté"><option value="">Toutes les raretés</option></select>
+<select id="ownership" aria-label="Possession">
+<option value="">Toute la collection</option>
+<option value="missing">À obtenir</option>
+<option value="owned">Possédées</option>
+</select>
+<button id="export" type="button">Exporter ma collection</button>
+<button id="importBtn" type="button">Importer une sauvegarde</button>
+<input id="importFile" type="file" accept="application/json">
+</section>
+<p class="note">Les versions normales, parallèles et réimpressions sont affichées séparément lorsqu'elles figurent dans la base de données. Chaque version possède sa propre case. Les cartes DON!! restent de simples cartes à cocher. Les données sont issues de catalogues communautaires construits à partir des listes officielles ; les illustrations appartiennent à leurs ayants droit. La couverture peut varier selon la langue et les mises à jour de la source.</p>
+<div id="status" role="status" aria-live="polite">Chargement du catalogue…</div>
+<section id="cards" class="grid" aria-label="Cartes"></section>
+</main>
+<footer>Projet de fans non officiel, gratuit et sans vente de cartes. One Piece Card Game appartient à Bandai, Eiichiro Oda, Shueisha et leurs ayants droit. Les coches restent enregistrées dans ce navigateur ; exporte régulièrement une sauvegarde.</footer>
 <script>
-const ROOT='https://raw.githubusercontent.com/Kuroro1990/OPTCG/main/';const $=x=>document.getElementById(x);let all=[],owned=new Set(JSON.parse(localStorage.getItem('opc-owned-v1')||'[]')),packs={};
-const idOf=c=>String(c.card_id||c.id);const packOf=c=>packs[c.pack_id]?.title_parts?.label||packs[c.pack_id]?.raw_title||c.pack_id||'Autre';
-function imgOf(c){
+'use strict';
+const ROOT_NEW='https://raw.githubusercontent.com/buhbbl/punk-records/main/';
+const ROOT_OLD='https://raw.githubusercontent.com/Kuroro1990/OPTCG/main/';
+const ROOTS={
+ french:ROOT_NEW,
+ english:ROOT_NEW,
+ japanese:ROOT_OLD,
+ 'chinese-hongkong':ROOT_NEW,
+ 'chinese-taiwan':ROOT_NEW,
+ thai:ROOT_NEW
+};
+const $=id=>document.getElementById(id);
+let all=[],packs={},activeLanguage=$('language').value,owned=new Set();
+try{const saved=JSON.parse(localStorage.getItem('opc-owned-v2')||'null');if(Array.isArray(saved))owned=new Set(saved);else{const legacy=JSON.parse(localStorage.getItem('opc-owned-v1')||'[]');if(Array.isArray(legacy))owned=new Set(legacy)}}catch(e){owned=new Set()}
+const idOf=c=>String(c.card_id||c.id||'');
+const packOf=c=>{
+ const p=packs[c.pack_id];
+ if(!p)return String(c.pack_id||'Autre');
+ if(p.title_parts&&p.title_parts.label)return p.title_parts.label;
+ const raw=p.raw_title||p.title_parts?.title||'';
+ const match=raw.match(/[\[【]([^\]】]+)[\]】]/);
+ return match?match[1]:raw||String(c.pack_id||'Autre');
+};
+const ownedKey=c=>activeLanguage+':'+idOf(c);
+const hasOwned=c=>owned.has(ownedKey(c))||owned.has(idOf(c));
+function imageUrl(c){
  if(c.img_full_url)return c.img_full_url;
- const lang=$('language').value;
- const hosts={
-  french:'fr',english:'en',japanese:'www',
-  'chinese-hongkong':'asia-hk','chinese-taiwan':'asia-tw',thai:'asia-th'
- };
- const ext=lang==='french'?'webp':'png';
- return 'https://'+(hosts[lang]||'en')+'.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(idOf(c))+'.'+ext;
+ const hosts={french:'fr',english:'en',japanese:'www','chinese-hongkong':'asia-hk','chinese-taiwan':'asia-tw',thai:'asia-th'};
+ const ext=activeLanguage==='french'?'webp':'png';
+ return 'https://'+(hosts[activeLanguage]||'en')+'.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(idOf(c))+'.'+ext;
 }
-function stats(){$('ownedCount').textContent=owned.size;$('totalCount').textContent=all.length;$('percent').textContent=all.length?Math.round(owned.size/all.length*100)+'%':'0%'}
-function options(id,vals,label){let e=$(id),v=e.value;e.innerHTML='<option value="">'+label+'</option>';[...new Set(vals.filter(Boolean).map(String))].sort().forEach(x=>{let o=document.createElement('option');o.value=x;o.textContent=x;e.append(o)});e.value=v}
-function render(){let q=$('search').value.toLowerCase(),s=$('set').value,cat=$('category').value,own=$('ownership').value;let list=all.filter(c=>(!q||(c.name+' '+idOf(c)).toLowerCase().includes(q))&&(!s||packOf(c)===s)&&(!cat||c.category===cat)&&(!own||(own==='owned'?owned.has(idOf(c)):!owned.has(idOf(c)))));let frag=document.createDocumentFragment();$('cards').innerHTML='';for(let c of list){let a=document.createElement('article');a.className='card';let im=document.createElement('img');im.loading='lazy';im.alt=c.name;im.src=imgOf(c);im.onerror=()=>{im.onerror=null;im.alt='Image indisponible pour '+idOf(c);im.style.display='block';im.style.objectFit='contain';im.style.padding='18px';im.style.minHeight='210px';im.style.color='#f5c451';im.src='data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420" viewBox="0 0 300 420"><rect width="300" height="420" fill="#111c2d"/><text x="150" y="190" fill="#f5c451" text-anchor="middle" font-size="18">Image indisponible</text><text x="150" y="225" fill="#9eacc0" text-anchor="middle" font-size="15">'+idOf(c)+'</text></svg>')};a.append(im);let d=document.createElement('div');d.className='info';let n=document.createElement('div');n.className='name';n.textContent=c.name||idOf(c);d.append(n);let code=document.createElement('div');code.className='id';code.textContent=idOf(c);d.append(code);let m=document.createElement('div');m.className='meta';m.textContent=[packOf(c),c.category].filter(Boolean).join(' • ');d.append(m);let l=document.createElement('label');l.className='own';let cb=document.createElement('input');cb.type='checkbox';cb.checked=owned.has(idOf(c));cb.onchange=()=>{cb.checked?owned.add(idOf(c)):owned.delete(idOf(c));localStorage.setItem('opc-owned-v1',JSON.stringify([...owned]));stats()};l.append(cb,document.createTextNode('Je possède'));d.append(l);a.append(d);frag.append(a)}$('cards').append(frag);$('status').textContent=list.length?list.length+' carte(s) affichée(s)':'Aucune carte trouvée avec ces filtres.';stats()}
-async function load(){try{$('status').textContent='Chargement des données…';let lang=$('language').value;let [p,c]=await Promise.all([fetch(ROOT+lang+'/packs.json').then(r=>{if(!r.ok)throw Error('Packs non disponibles');return r.json()}),fetch(ROOT+lang+'/index/cards_by_id.json').then(r=>{if(!r.ok)throw Error('Index des cartes non disponible');return r.json()})]);packs=p;all=Object.values(c);options('set',all.map(packOf),'Toutes les extensions / decks');options('category',all.map(x=>x.category),'Tous les types');render()}catch(e){all=[];stats();$('status').textContent='Chargement impossible : '+e.message+'. Réessaie plus tard.'}}
-['search','set','category','ownership'].forEach(x=>$(x).addEventListener(x==='search'?'input':'change',render));$('language').onchange=load;
-$('export').onclick=()=>{let b=new Blob([JSON.stringify({owned:[...owned]},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='ma-collection-one-piece.json';a.click();URL.revokeObjectURL(a.href)};
-$('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!Array.isArray(d.owned))throw Error();owned=new Set(d.owned);localStorage.setItem('opc-owned-v1',JSON.stringify([...owned]));render()}catch{alert('Sauvegarde invalide.')}e.target.value=''};load();
-</script></body></html>
+function variantLabel(id){
+ const m=id.match(/_(p|r)(\d+)$/i);
+ if(!m)return '';
+ return (m[1].toLowerCase()==='p'?'Illustration parallèle':'Réimpression')+' • '+m[2];
+}
+function stats(){
+ const count=all.reduce((n,c)=>n+(hasOwned(c)?1:0),0);
+ $('ownedCount').textContent=count;
+ $('totalCount').textContent=all.length;
+ $('percent').textContent=all.length?Math.round(count/all.length*100)+'%':'0%';
+}
+function fillOptions(id,values,placeholder){
+ const el=$(id),old=el.value;
+ el.innerHTML='';
+ const first=document.createElement('option');first.value='';first.textContent=placeholder;el.append(first);
+ [...new Set(values.filter(Boolean).map(String))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'})).forEach(v=>{
+  const o=document.createElement('option');o.value=v;o.textContent=v;el.append(o);
+ });
+ el.value=old;
+}
+function render(){
+ const q=$('search').value.trim().toLocaleLowerCase();
+ const set=$('set').value,cat=$('category').value,rarity=$('rarity').value,filter=$('ownership').value;
+ const list=all.filter(c=>{
+  const id=idOf(c),pack=packOf(c),colors=Array.isArray(c.colors)?c.colors.join(' '):(c.colors||'');
+  const searchable=[c.name,id,pack,c.rarity,c.category,colors].join(' ').toLocaleLowerCase();
+  return (!q||searchable.includes(q))&&(!set||pack===set)&&(!cat||c.category===cat)&&(!rarity||c.rarity===rarity)&&(!filter||(filter==='owned'?hasOwned(c):!hasOwned(c)));
+ });
+ const frag=document.createDocumentFragment();
+ $('cards').innerHTML='';
+ for(const c of list){
+  const card=document.createElement('article');card.className='card';
+  const im=document.createElement('img');im.loading='lazy';im.decoding='async';im.alt=(c.name||idOf(c))+' '+idOf(c);im.src=imageUrl(c);
+  im.onerror=()=>{
+   im.onerror=null;im.alt='Illustration indisponible : '+idOf(c);
+   const svg='<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420" viewBox="0 0 300 420"><rect width="300" height="420" fill="#111c2d"/><text x="150" y="190" fill="#f5c451" text-anchor="middle" font-size="18">Image indisponible</text><text x="150" y="225" fill="#9eacc0" text-anchor="middle" font-size="15">'+idOf(c).replace(/[<>&"]/g,'')+'</text></svg>';
+   im.src='data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
+  };
+  card.append(im);
+  const info=document.createElement('div');info.className='info';
+  const name=document.createElement('div');name.className='name';name.textContent=c.name||idOf(c);info.append(name);
+  const code=document.createElement('div');code.className='id';code.textContent=idOf(c);info.append(code);
+  const variant=variantLabel(idOf(c));if(variant){const v=document.createElement('div');v.className='variant';v.textContent=variant;info.append(v)}
+  const meta=document.createElement('div');meta.className='meta';
+  const colorText=Array.isArray(c.colors)?c.colors.join(' / '):(c.colors||'');
+  meta.textContent=[packOf(c),c.rarity,c.category,colorText].filter(Boolean).join(' • ');info.append(meta);
+  const label=document.createElement('label');label.className='own';
+  const cb=document.createElement('input');cb.type='checkbox';cb.checked=hasOwned(c);
+  cb.addEventListener('change',()=>{
+   const key=ownedKey(c),legacy=idOf(c);
+   if(cb.checked){owned.add(key);owned.delete(legacy)}else{owned.delete(key);owned.delete(legacy)}
+   try{localStorage.setItem('opc-owned-v2',JSON.stringify([...owned]))}catch(e){}
+   stats();
+  });
+  label.append(cb,document.createTextNode('Je possède'));info.append(label);
+  card.append(info);frag.append(card);
+ }
+ $('cards').append(frag);
+ $('status').classList.remove('error');
+ $('status').textContent=list.length?list.length+' version(s) affichée(s)':'Aucune carte trouvée avec ces filtres.';
+ stats();
+}
+async function fetchJson(url){
+ const response=await fetch(url,{cache:'no-cache'});
+ if(!response.ok)throw new Error('Erreur '+response.status+' sur '+url.split('/').slice(-2).join('/'));
+ return response.json();
+}
+async function load(){
+ activeLanguage=$('language').value;
+ $('status').classList.remove('error');$('status').textContent='Chargement des données officielles indexées…';
+ $('cards').innerHTML='';all=[];packs={};stats();
+ const root=ROOTS[activeLanguage]||ROOT_NEW;
+ try{
+  const results=await Promise.all([
+   fetchJson(root+activeLanguage+'/packs.json'),
+   fetchJson(root+activeLanguage+'/index/cards_by_id.json')
+  ]);
+  packs=results[0];
+  const index=results[1];
+  all=Object.entries(index).map(([key,value])=>({...value,card_id:value.card_id||value.id||key}));
+  all=all.filter(c=>idOf(c));
+  fillOptions('set',all.map(packOf),'Toutes les extensions / decks');
+  fillOptions('category',all.map(c=>c.category),'Tous les types');
+  fillOptions('rarity',all.map(c=>c.rarity),'Toutes les raretés');
+  render();
+ }catch(error){
+  all=[];stats();$('status').classList.add('error');
+  $('status').textContent='Impossible de charger le catalogue : '+error.message+'. Réessaie dans quelques instants.';
+ }
+}
+['search','set','category','rarity','ownership'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
+$('language').addEventListener('change',load);
+$('export').addEventListener('click',()=>{
+ const payload={format:'one-piece-card-collection',version:2,owned:[...owned]};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ma-collection-one-piece.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+$('importBtn').addEventListener('click',()=>$('importFile').click());
+$('importFile').addEventListener('change',async e=>{
+ const file=e.target.files&&e.target.files[0];if(!file)return;
+ try{
+  const data=JSON.parse(await file.text());
+  const list=Array.isArray(data)?data:data.owned;
+  if(!Array.isArray(list))throw new Error('format');
+  const valid=list.filter(x=>typeof x==='string'||(x&&typeof x.id==='string'&&typeof x.language==='string'));
+  if(valid.length!==list.length)throw new Error('entries');
+  owned=new Set(valid.map(x=>typeof x==='string'?x:x.language+':'+x.id));
+  localStorage.setItem('opc-owned-v2',JSON.stringify([...owned]));render();
+  $('status').textContent='Sauvegarde importée : '+owned.size+' version(s) enregistrée(s).';
+ }catch(error){alert('Sauvegarde invalide ou illisible.')}
+ e.target.value='';
+});
+load();
+</script>
+</body>
+</html>
