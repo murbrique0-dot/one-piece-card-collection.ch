@@ -9,7 +9,13 @@
 <script>
 const ROOT='https://raw.githubusercontent.com/Kuroro1990/OPTCG/main/';const $=x=>document.getElementById(x);let all=[],owned=new Set(JSON.parse(localStorage.getItem('opc-owned-v1')||'[]')),packs={};
 const idOf=c=>String(c.card_id||c.id);const packOf=c=>packs[c.pack_id]?.title_parts?.label||packs[c.pack_id]?.raw_title||c.pack_id||'Autre';
-function imgOf(c){return 'https://'+( $('language').value==='french'?'fr':$('language').value==='english'?'en': 'www')+'.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(idOf(c))+'.webp'}
+function imgOf(c){
+ if(c.img_full_url)return c.img_full_url;
+ const host=$('language').value==='french'?'fr':$('language').value==='english'?'en':'www';
+ const base='https://'+host+'.onepiece-cardgame.com/images/cardlist/card/';
+ if(c.img_url){const file=String(c.img_url).split('/').pop();if(file)return base+file}
+ return base+encodeURIComponent(idOf(c))+'.webp';
+}
 function stats(){$('ownedCount').textContent=owned.size;$('totalCount').textContent=all.length;$('percent').textContent=all.length?Math.round(owned.size/all.length*100)+'%':'0%'}
 function options(id,vals,label){let e=$(id),v=e.value;e.innerHTML='<option value="">'+label+'</option>';[...new Set(vals.filter(Boolean).map(String))].sort().forEach(x=>{let o=document.createElement('option');o.value=x;o.textContent=x;e.append(o)});e.value=v}
 function render(){let q=$('search').value.toLowerCase(),s=$('set').value,cat=$('category').value,own=$('ownership').value;let list=all.filter(c=>(!q||(c.name+' '+idOf(c)).toLowerCase().includes(q))&&(!s||packOf(c)===s)&&(!cat||c.category===cat)&&(!own||(own==='owned'?owned.has(idOf(c)):!owned.has(idOf(c)))));let frag=document.createDocumentFragment();$('cards').innerHTML='';for(let c of list){let a=document.createElement('article');a.className='card';let im=document.createElement('img');im.loading='lazy';im.alt=c.name;im.src=imgOf(c);im.onerror=()=>im.style.display='none';a.append(im);let d=document.createElement('div');d.className='info';let n=document.createElement('div');n.className='name';n.textContent=c.name||idOf(c);d.append(n);let code=document.createElement('div');code.className='id';code.textContent=idOf(c);d.append(code);let m=document.createElement('div');m.className='meta';m.textContent=[packOf(c),c.category].filter(Boolean).join(' • ');d.append(m);let l=document.createElement('label');l.className='own';let cb=document.createElement('input');cb.type='checkbox';cb.checked=owned.has(idOf(c));cb.onchange=()=>{cb.checked?owned.add(idOf(c)):owned.delete(idOf(c));localStorage.setItem('opc-owned-v1',JSON.stringify([...owned]));stats()};l.append(cb,document.createTextNode('Je possède'));d.append(l);a.append(d);frag.append(a)}$('cards').append(frag);$('status').textContent=list.length?list.length+' carte(s) affichée(s)':'Aucune carte trouvée avec ces filtres.';stats()}
