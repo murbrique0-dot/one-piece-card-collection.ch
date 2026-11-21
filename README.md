@@ -33,4 +33,4 @@ Site : https://murbrique0-dot.github.io/one-piece-card-collection.ch/
 
 ## Droits et transparence
 
-Projet de fans non officiel, sans vente de cartes ni affiliation avec Bandai. Les noms, textes et illustrations restent la propriété de leurs ayants droit. La structure de données Punk Records est publiée sous sa propre licence ; consulte son dépôt pour les conditions de réutilisation.
+Projet de fans non officiel, sans vente de cartes ni affiliation avec Bandai. Les noms, textes et illustrations restent la propriété de leurs ayants droit. La structure de données Punk Records est publiée sous sa propre licence ; consulte son dépôt pour les conditions de réutilisation. Les données DON!! proviennent de [Koala Kollect](https://github.com/hotavocado/koala-kollect-data), publiées sous licence CC BY 4.0 ; attribution fournie ici.
