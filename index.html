@@ -17,7 +17,7 @@ main{max-width:1450px;margin:auto;padding:16px}
 .stats,.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 .stat,.filters{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px}
 .stat{min-width:125px;flex:1}
-.stat b{color:var(--gold);font-size:20px}
+.stat b{color:var(--gold);font-size:20px}.collection-progress{height:12px;background:#080d16;border:1px solid var(--line);border-radius:99px;overflow:hidden;margin-top:9px}.collection-progress>div{height:100%;width:0;background:var(--green);transition:width .2s}
 input,select,button{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px;min-width:0}
 button{background:#263954;cursor:pointer}
 button:hover{border-color:var(--gold)}
@@ -47,9 +47,9 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 </header>
 <main>
 <div class="stats">
-<div class="stat"><b id="ownedCount">0</b><br>Possédées dans cette langue</div>
-<div class="stat"><b id="totalCount">0</b><br>Versions chargées</div>
-<div class="stat"><b id="percent">0%</b><br>Collection</div>
+<div class="stat" style="flex:2"><b id="ownedCount">0 / 0</b><br><span id="ownedLabel">Possédées dans cette langue</span><div class="collection-progress"><div id="progressFill"></div></div></div>
+<div class="stat"><b id="percent">0%</b><br>Collection complète</div>
+<div class="stat"><b id="totalCount">0</b><br>Versions répertoriées</div>
 </div>
 <section class="filters" aria-label="Filtres du catalogue">
 <input id="search" type="search" placeholder="Nom, numéro, extension…">
@@ -70,7 +70,7 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 <button id="importBtn" type="button">Importer une sauvegarde</button>
 <input id="importFile" type="file" accept="application/json">
 </section>
-<p class="note">Les versions normales, parallèles et réimpressions sont affichées séparément lorsqu'elles figurent dans la base de données. Chaque version possède sa propre case. Les cartes DON!! restent de simples cartes à cocher. Les données sont issues de catalogues communautaires construits à partir des listes officielles ; les illustrations appartiennent à leurs ayants droit. Langues disponibles : français, anglais et japonais. La base ajoute aussi les designs DON!! (noms en anglais, sans choix de finition). Attention : la source japonaise actuellement disponible s'arrête à OP-15 ; les catalogues français et anglais disposent de données jusqu'à OP-18.</p>
+<p class="note">Le compteur en haut calcule toute ta collection répertoriée dans la langue choisie, même quand tu recherches ou filtres des cartes. Les versions normales, parallèles et réimpressions sont affichées séparément lorsqu'elles figurent dans la base de données. Chaque version possède sa propre case. Les cartes DON!! restent de simples cartes à cocher. Les données sont issues de catalogues communautaires construits à partir des listes officielles ; les illustrations appartiennent à leurs ayants droit. Langues disponibles : français, anglais et japonais. La base ajoute aussi les designs DON!! (noms en anglais, sans choix de finition). Attention : la source japonaise actuellement disponible s'arrête à OP-15 ; les catalogues français et anglais disposent de données jusqu'à OP-18.</p>
 <div id="status" role="status" aria-live="polite">Chargement du catalogue…</div>
 <section id="cards" class="grid" aria-label="Cartes"></section>
 </main>
@@ -115,9 +115,12 @@ function variantLabel(id){
 }
 function stats(){
  const count=all.reduce((n,c)=>n+(hasOwned(c)?1:0),0);
- $('ownedCount').textContent=count;
- $('totalCount').textContent=all.length;
- $('percent').textContent=all.length?Math.round(count/all.length*100)+'%':'0%';
+ $('ownedCount').textContent=count.toLocaleString('fr-FR')+' / '+all.length.toLocaleString('fr-FR');
+ $('ownedLabel').textContent='Versions possédées • '+({french:'français',english:'anglais',japanese:'japonais'}[activeLanguage]||'langue sélectionnée')+' + DON!!';
+ $('totalCount').textContent=all.length.toLocaleString('fr-FR');
+ const pct=all.length?Math.round(count/all.length*100):0;
+ $('percent').textContent=pct+'%';
+ $('progressFill').style.width=pct+'%';
 }
 function fillOptions(id,values,placeholder){
  const el=$(id),old=el.value;
