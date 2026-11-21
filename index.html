@@ -73,7 +73,7 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 <button id="importBtn" type="button">Importer une sauvegarde</button>
 <input id="importFile" type="file" accept="application/json">
 </section>
-<p class="note">Les versions normales, parallèles et réimpressions sont affichées séparément lorsqu'elles figurent dans la base de données. Chaque version possède sa propre case. Les cartes DON!! restent de simples cartes à cocher. Les données sont issues de catalogues communautaires construits à partir des listes officielles ; les illustrations appartiennent à leurs ayants droit. La couverture peut varier selon la langue et les mises à jour de la source.</p>
+<p class="note">Les versions normales, parallèles et réimpressions sont affichées séparément lorsqu'elles figurent dans la base de données. Chaque version possède sa propre case. Les cartes DON!! restent de simples cartes à cocher. Les données sont issues de catalogues communautaires construits à partir des listes officielles ; les illustrations appartiennent à leurs ayants droit. La couverture peut varier selon la langue et les mises à jour de la source. Attention : la source japonaise actuellement disponible s'arrête à OP-15 ; les autres langues prises en charge disposent des données jusqu'à OP-18.</p>
 <div id="status" role="status" aria-live="polite">Chargement du catalogue…</div>
 <section id="cards" class="grid" aria-label="Cartes"></section>
 </main>
@@ -92,7 +92,7 @@ const ROOTS={
 };
 const $=id=>document.getElementById(id);
 let all=[],packs={},activeLanguage=$('language').value,owned=new Set();
-try{const saved=JSON.parse(localStorage.getItem('opc-owned-v2')||'null');if(Array.isArray(saved))owned=new Set(saved);else{const legacy=JSON.parse(localStorage.getItem('opc-owned-v1')||'[]');if(Array.isArray(legacy))owned=new Set(legacy)}}catch(e){owned=new Set()}
+try{const saved=JSON.parse(localStorage.getItem('opc-owned-v2')||'null');if(Array.isArray(saved))owned=new Set(saved);else{const legacy=JSON.parse(localStorage.getItem('opc-owned-v1')||'[]');if(Array.isArray(legacy))owned=new Set(legacy.filter(x=>typeof x==='string').map(x=>'french:'+x))}}catch(e){owned=new Set()}
 const idOf=c=>String(c.card_id||c.id||'');
 const packOf=c=>{
  const p=packs[c.pack_id];
