@@ -8,6 +8,7 @@ Catalogue gratuit pour suivre sa collection One Piece Card Game.
 - Recherche par nom, numéro, extension et rareté.
 - Filtres par extension/deck, type, rareté et cartes possédées/manquantes.
 - Versions normales, parallèles et réimpressions affichées séparément quand elles sont présentes dans la source.
+- 165 designs DON!! ajoutés depuis le catalogue Koala Kollect ; une seule case par design, sans sélecteur de finition. Les noms DON!! restent en anglais et deux illustrations sont absentes de la source.
 - Une case « Je possède » par version ; les DON!! restent des cartes simples à cocher.
 - Sauvegarde locale dans le navigateur, export JSON et import JSON.
 - Collection séparée par langue pour éviter qu'une carte cochée en anglais soit automatiquement cochée en français.
