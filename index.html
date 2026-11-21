@@ -106,7 +106,7 @@ const packOf=c=>{
 const ownedKey=c=>c.category==='Don'?idOf(c):activeLanguage+':'+idOf(c);
 const hasOwned=c=>owned.has(ownedKey(c))||owned.has(idOf(c));
 function imageUrl(c){
- if(c.img_full_url)return c.img_full_url;
+ if(c.img_full_url||c.img_url)return c.img_full_url||c.img_url;
  const hosts={french:'fr',english:'en',japanese:'www','chinese-hongkong':'asia-hk','chinese-taiwan':'asia-tw',thai:'asia-th'};
  const ext=activeLanguage==='french'?'webp':'png';
  return 'https://'+(hosts[activeLanguage]||'en')+'.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(idOf(c))+'.'+ext;
