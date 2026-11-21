@@ -80,9 +80,12 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 <footer>Projet de fans non officiel, gratuit et sans vente de cartes. Données standard : <a href="https://github.com/buhbbl/punk-records" target="_blank" rel="noopener">Punk Records</a> • DON!! : <a href="https://github.com/hotavocado/koala-kollect-data" target="_blank" rel="noopener">Koala Kollect</a>. One Piece Card Game appartient à Bandai, Eiichiro Oda, Shueisha et leurs ayants droit. Les coches restent enregistrées dans ce navigateur ; exporte régulièrement une sauvegarde.</footer>
 <script>
 'use strict';
-const ROOT_NEW='https://raw.githubusercontent.com/buhbbl/punk-records/main/';
-const ROOT_OLD='https://raw.githubusercontent.com/Kuroro1990/OPTCG/main/';
-const DON_ROOT='https://raw.githubusercontent.com/hotavocado/koala-kollect-data/main/';
+const ROOT_NEW='https://cdn.jsdelivr.net/gh/buhbbl/punk-records@main/';
+const ROOT_OLD='https://cdn.jsdelivr.net/gh/Kuroro1990/OPTCG@main/';
+const DON_ROOT='https://cdn.jsdelivr.net/gh/hotavocado/koala-kollect-data@main/';
+const RAW_ROOT_NEW='https://raw.githubusercontent.com/buhbbl/punk-records/main/';
+const RAW_ROOT_OLD='https://raw.githubusercontent.com/Kuroro1990/OPTCG/main/';
+const RAW_DON_ROOT='https://raw.githubusercontent.com/hotavocado/koala-kollect-data/main/';
 const ROOTS={
  french:ROOT_NEW,
  english:ROOT_NEW,
@@ -144,8 +147,17 @@ function render(){
  for(const c of list){
   const card=document.createElement('article');card.className='card';
   const im=document.createElement('img');im.loading='lazy';im.decoding='async';im.alt=(c.name||idOf(c))+' '+idOf(c);im.src=imageUrl(c);
-  im.onerror=()=>{
-   im.onerror=null;im.alt='Illustration indisponible : '+idOf(c);
+  im.onerror=async()=>{
+   im.onerror=null;
+   if(c.category!=='Don'&&c.pack_id&&idOf(c)){
+    try{
+     const root=ROOTS[activeLanguage]||ROOT_NEW,rawRoot=activeLanguage==='japanese'?RAW_ROOT_OLD:RAW_ROOT_NEW;
+     const detail=await fetchJson(root+activeLanguage+'/cards/'+c.pack_id+'/'+idOf(c)+'.json',rawRoot+activeLanguage+'/cards/'+c.pack_id+'/'+idOf(c)+'.json');
+     const exact=detail.img_full_url||detail.img_url;
+     if(exact&&im.dataset.exactTried!=='1'){im.dataset.exactTried='1';im.onerror=()=>{im.onerror=null;im.src='data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420"><rect width="300" height="420" fill="#111c2d"/><text x="150" y="205" fill="#f5c451" text-anchor="middle">Image indisponible</text></svg>')};im.src=exact;return;}
+    }catch(detailError){console.warn('Illustration introuvable',idOf(c),detailError)}
+   }
+   im.alt='Illustration indisponible : '+idOf(c);
    const svg='<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420" viewBox="0 0 300 420"><rect width="300" height="420" fill="#111c2d"/><text x="150" y="190" fill="#f5c451" text-anchor="middle" font-size="18">Image indisponible</text><text x="150" y="225" fill="#9eacc0" text-anchor="middle" font-size="15">'+idOf(c).replace(/[<>&"]/g,'')+'</text></svg>';
    im.src='data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
   };
@@ -173,20 +185,26 @@ function render(){
  $('status').textContent=list.length?list.length+' version(s) affichée(s)':'Aucune carte trouvée avec ces filtres.';
  stats();
 }
-async function fetchJson(url){
- const response=await fetch(url,{cache:'no-cache'});
- if(!response.ok)throw new Error('Erreur '+response.status+' sur '+url.split('/').slice(-2).join('/'));
+async function fetchWithFallback(url,rawUrl){
+ let firstError;
+ for(const candidate of [url,rawUrl].filter(Boolean)){
+  try{const response=await fetch(candidate,{cache:'no-cache'});if(!response.ok)throw new Error('HTTP '+response.status);return response}
+  catch(error){firstError=error}
+ }
+ throw firstError||new Error('Source indisponible');
+}
+async function fetchJson(url,rawUrl){
+ const response=await fetchWithFallback(url,rawUrl);
  return response.json();
 }
-async function fetchText(url){
- const response=await fetch(url,{cache:'no-cache'});
- if(!response.ok)throw new Error('Erreur '+response.status+' sur la base DON!!');
+async function fetchText(url,rawUrl){
+ const response=await fetchWithFallback(url,rawUrl);
  return response.text();
 }
 async function loadDonCards(){
  const [observationsText,printingsText]=await Promise.all([
-  fetchText(DON_ROOT+'data/card_observations/tcgcsv.jsonl'),
-  fetchText(DON_ROOT+'data/printings/tcgcsv.jsonl')
+  fetchText(DON_ROOT+'data/card_observations/tcgcsv.jsonl',RAW_DON_ROOT+'data/card_observations/tcgcsv.jsonl'),
+  fetchText(DON_ROOT+'data/printings/tcgcsv.jsonl',RAW_DON_ROOT+'data/printings/tcgcsv.jsonl')
  ]);
  const observations=observationsText.split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line)).filter(x=>x.category==='don');
  const printings=printingsText.split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line)).filter(x=>x.rarity==='DON'&&x.image_url);
@@ -204,9 +222,10 @@ async function load(){
  $('cards').innerHTML='';all=[];packs={};stats();
  const root=ROOTS[activeLanguage]||ROOT_NEW;
  try{
+  const rawRoot=activeLanguage==='japanese'?RAW_ROOT_OLD:RAW_ROOT_NEW;
   const results=await Promise.all([
-   fetchJson(root+activeLanguage+'/packs.json'),
-   fetchJson(root+activeLanguage+'/index/cards_by_id.json')
+   fetchJson(root+activeLanguage+'/packs.json',rawRoot+activeLanguage+'/packs.json'),
+   fetchJson(root+activeLanguage+'/index/cards_by_id.json',rawRoot+activeLanguage+'/index/cards_by_id.json')
   ]);
   packs=results[0];
   const index=results[1];
@@ -219,7 +238,8 @@ async function load(){
   render();
  }catch(error){
   all=[];stats();$('status').classList.add('error');
-  $('status').textContent='Impossible de charger le catalogue : '+error.message+'. Réessaie dans quelques instants.';
+  $('status').textContent='Impossible de charger le catalogue : '+error.message+'. Vérifie ta connexion puis réessaie.';
+  const retry=document.createElement('button');retry.type='button';retry.textContent='Réessayer le chargement';retry.style.marginLeft='10px';retry.addEventListener('click',load);$('status').append(retry);
  }
 }
 ['search','set','category','rarity','ownership'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
