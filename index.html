@@ -57,9 +57,6 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 <option value="french">Français</option>
 <option value="english">English</option>
 <option value="japanese">日本語</option>
-<option value="chinese-hongkong">中文（香港）</option>
-<option value="chinese-taiwan">中文（台灣）</option>
-<option value="thai">ไทย</option>
 </select>
 <select id="set" aria-label="Extension"><option value="">Toutes les extensions / decks</option></select>
 <select id="category" aria-label="Type"><option value="">Tous les types</option></select>
@@ -73,7 +70,7 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 <button id="importBtn" type="button">Importer une sauvegarde</button>
 <input id="importFile" type="file" accept="application/json">
 </section>
-<p class="note">Les versions normales, parallèles et réimpressions sont affichées séparément lorsqu'elles figurent dans la base de données. Chaque version possède sa propre case. Les cartes DON!! restent de simples cartes à cocher. Les données sont issues de catalogues communautaires construits à partir des listes officielles ; les illustrations appartiennent à leurs ayants droit. La couverture peut varier selon la langue et les mises à jour de la source. La base ajoute aussi 165 designs DON!! (noms en anglais, sans choix de finition ; deux images manquent dans la source). Attention : la source japonaise actuellement disponible s'arrête à OP-15 ; les autres langues prises en charge disposent des données jusqu'à OP-18.</p>
+<p class="note">Les versions normales, parallèles et réimpressions sont affichées séparément lorsqu'elles figurent dans la base de données. Chaque version possède sa propre case. Les cartes DON!! restent de simples cartes à cocher. Les données sont issues de catalogues communautaires construits à partir des listes officielles ; les illustrations appartiennent à leurs ayants droit. Langues disponibles : français, anglais et japonais. La base ajoute aussi les designs DON!! (noms en anglais, sans choix de finition). Attention : la source japonaise actuellement disponible s'arrête à OP-15 ; les catalogues français et anglais disposent de données jusqu'à OP-18.</p>
 <div id="status" role="status" aria-live="polite">Chargement du catalogue…</div>
 <section id="cards" class="grid" aria-label="Cartes"></section>
 </main>
@@ -110,7 +107,7 @@ const ownedKey=c=>c.category==='Don'?idOf(c):activeLanguage+':'+idOf(c);
 const hasOwned=c=>owned.has(ownedKey(c))||owned.has(idOf(c));
 function imageUrl(c){
  if(c.img_full_url||c.img_url)return c.img_full_url||c.img_url;
- const hosts={french:'fr',english:'en',japanese:'www','chinese-hongkong':'asia-hk','chinese-taiwan':'asia-tw',thai:'asia-th'};
+ const hosts={french:'fr',english:'en',japanese:'www'};
  const ext=activeLanguage==='french'?'webp':'png';
  return 'https://'+(hosts[activeLanguage]||'en')+'.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(idOf(c))+'.'+ext;
 }
