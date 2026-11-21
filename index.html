@@ -73,7 +73,7 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 <button id="importBtn" type="button">Importer une sauvegarde</button>
 <input id="importFile" type="file" accept="application/json">
 </section>
-<p class="note">Les versions normales, parallèles et réimpressions sont affichées séparément lorsqu'elles figurent dans la base de données. Chaque version possède sa propre case. Les cartes DON!! restent de simples cartes à cocher. Les données sont issues de catalogues communautaires construits à partir des listes officielles ; les illustrations appartiennent à leurs ayants droit. La couverture peut varier selon la langue et les mises à jour de la source. Attention : la source japonaise actuellement disponible s'arrête à OP-15 ; les autres langues prises en charge disposent des données jusqu'à OP-18.</p>
+<p class="note">Les versions normales, parallèles et réimpressions sont affichées séparément lorsqu'elles figurent dans la base de données. Chaque version possède sa propre case. Les cartes DON!! restent de simples cartes à cocher. Les données sont issues de catalogues communautaires construits à partir des listes officielles ; les illustrations appartiennent à leurs ayants droit. La couverture peut varier selon la langue et les mises à jour de la source. La base ajoute aussi 165 designs DON!! (noms en anglais, sans choix de finition ; deux images manquent dans la source). Attention : la source japonaise actuellement disponible s'arrête à OP-15 ; les autres langues prises en charge disposent des données jusqu'à OP-18.</p>
 <div id="status" role="status" aria-live="polite">Chargement du catalogue…</div>
 <section id="cards" class="grid" aria-label="Cartes"></section>
 </main>
@@ -82,6 +82,7 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 'use strict';
 const ROOT_NEW='https://raw.githubusercontent.com/buhbbl/punk-records/main/';
 const ROOT_OLD='https://raw.githubusercontent.com/Kuroro1990/OPTCG/main/';
+const DON_ROOT='https://raw.githubusercontent.com/hotavocado/koala-kollect-data/main/';
 const ROOTS={
  french:ROOT_NEW,
  english:ROOT_NEW,
@@ -102,7 +103,7 @@ const packOf=c=>{
  const match=raw.match(/[\[【]([^\]】]+)[\]】]/);
  return match?match[1]:raw||String(c.pack_id||'Autre');
 };
-const ownedKey=c=>activeLanguage+':'+idOf(c);
+const ownedKey=c=>c.category==='Don'?'DON:'+idOf(c):activeLanguage+':'+idOf(c);
 const hasOwned=c=>owned.has(ownedKey(c))||owned.has(idOf(c));
 function imageUrl(c){
  if(c.img_full_url)return c.img_full_url;
@@ -177,6 +178,26 @@ async function fetchJson(url){
  if(!response.ok)throw new Error('Erreur '+response.status+' sur '+url.split('/').slice(-2).join('/'));
  return response.json();
 }
+async function fetchText(url){
+ const response=await fetch(url,{cache:'no-cache'});
+ if(!response.ok)throw new Error('Erreur '+response.status+' sur la base DON!!');
+ return response.text();
+}
+async function loadDonCards(){
+ const [observationsText,printingsText]=await Promise.all([
+  fetchText(DON_ROOT+'data/card_observations/tcgcsv.jsonl'),
+  fetchText(DON_ROOT+'data/printings/tcgcsv.jsonl')
+ ]);
+ const observations=observationsText.split(/\\r?\\n/).filter(Boolean).map(line=>JSON.parse(line)).filter(x=>x.category==='don');
+ const printings=printingsText.split(/\\r?\\n/).filter(Boolean).map(line=>JSON.parse(line)).filter(x=>x.rarity==='DON'&&x.image_url);
+ const byCard=new Map();
+ for(const p of printings){const rows=byCard.get(p.card_key)||[];rows.push(p);byCard.set(p.card_key,rows)}
+ return observations.map(o=>{
+  const rows=byCard.get(o.card_key)||[];
+  const chosen=rows.find(p=>p.variant==='normal')||rows.find(p=>p.variant==='gold')||rows[0];
+  return {card_id:'DON:'+o.card_key,name:o.name,pack_id:'DON!!',rarity:'DON!!',category:'Don',colors:[],img_full_url:chosen?.image_url||''};
+ });
+}
 async function load(){
  activeLanguage=$('language').value;
  $('status').classList.remove('error');$('status').textContent='Chargement des données officielles indexées…';
@@ -191,6 +212,7 @@ async function load(){
   const index=results[1];
   all=Object.entries(index).map(([key,value])=>({...value,card_id:value.card_id||value.id||key}));
   all=all.filter(c=>idOf(c));
+  try{const donCards=await loadDonCards();all.push(...donCards)}catch(donError){console.warn('DON!! catalogue indisponible',donError)}
   fillOptions('set',all.map(packOf),'Toutes les extensions / decks');
   fillOptions('category',all.map(c=>c.category),'Tous les types');
   fillOptions('rarity',all.map(c=>c.rarity),'Toutes les raretés');
@@ -216,7 +238,7 @@ $('importFile').addEventListener('change',async e=>{
   if(!Array.isArray(list))throw new Error('format');
   const valid=list.filter(x=>typeof x==='string'||(x&&typeof x.id==='string'&&typeof x.language==='string'));
   if(valid.length!==list.length)throw new Error('entries');
-  owned=new Set(valid.map(x=>typeof x==='string'?x:x.language+':'+x.id));
+  owned=new Set(valid.map(x=>typeof x==='string'?(x.includes(':')?x:activeLanguage+':'+x):x.language+':'+x.id));
   localStorage.setItem('opc-owned-v2',JSON.stringify([...owned]));render();
   $('status').textContent='Sauvegarde importée : '+owned.size+' version(s) enregistrée(s).';
  }catch(error){alert('Sauvegarde invalide ou illisible.')}
