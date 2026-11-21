@@ -189,7 +189,7 @@ async function loadDonCards(){
   fetchText(DON_ROOT+'data/printings/tcgcsv.jsonl')
  ]);
  const observations=observationsText.split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line)).filter(x=>x.category==='don');
- const printings=printingsText.split(/\\r?\\n/).filter(Boolean).map(line=>JSON.parse(line)).filter(x=>x.rarity==='DON'&&x.image_url);
+ const printings=printingsText.split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line)).filter(x=>x.rarity==='DON'&&x.image_url);
  const byCard=new Map();
  for(const p of printings){const rows=byCard.get(p.card_key)||[];rows.push(p);byCard.set(p.card_key,rows)}
  return observations.map(o=>{
