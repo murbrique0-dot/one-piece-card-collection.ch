@@ -19,7 +19,7 @@ Les données françaises, anglaises, chinoises (Hong Kong et Taïwan) et thaïla
 
 La source japonaise utilisée actuellement est l'ancienne copie [Kuroro1990/OPTCG](https://github.com/Kuroro1990/OPTCG), car la branche japonaise de Punk Records est vide au moment de cette mise à jour. Cette copie japonaise s'arrête à OP-15 et ne comprend donc pas les sorties japonaises les plus récentes. Le choix japonais est conservé pour ne pas afficher un catalogue vide, mais il n'est pas à jour.
 
-Les variantes sont séparées uniquement lorsqu'elles existent dans la base source (par exemple les identifiants suffixés `_p1`, `_p2` ou `_r1`). Cela ne garantit pas que chaque illustration promotionnelle, Manga, DON!! ou variante de chaque région soit déjà répertoriée. Les images sont chargées depuis les serveurs officiels ; certaines peuvent être indisponibles ou changer d'adresse.
+Les variantes sont séparées uniquement lorsqu'elles existent dans la base source (par exemple les identifiants suffixés `_p1`, `_p2` ou `_r1`). Cela ne garantit pas que chaque illustration promotionnelle, Manga ou variante de chaque région soit déjà répertoriée. Les DON!! viennent d'un catalogue communautaire séparé (Koala Kollect, données de produits TCGplayer) : ils sont regroupés par design, sans distinguer les finitions. Les images standard sont chargées depuis les serveurs officiels ; les images DON!! utilisent les liens de leur source et certaines images peuvent être absentes ou indisponibles.
 
 ## Sauvegarde
 
