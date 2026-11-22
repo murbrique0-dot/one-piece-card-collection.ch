@@ -85,9 +85,7 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
  <p id="accountStatus" style="color:#9eacc0;margin:6px 0 12px">Connecte-toi pour sauvegarder ta collection et la retrouver sur tes autres appareils.</p>
  <div id="authForm" style="display:flex;gap:8px;flex-wrap:wrap">
   <input id="authEmail" type="email" autocomplete="email" placeholder="Ton adresse e-mail" style="flex:1 1 220px">
-  <button id="sendCode" type="button">Recevoir mon code</button>
-  <input id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Code à 6 chiffres" style="flex:1 1 140px" hidden>
-  <button id="verifyCode" type="button" hidden>Vérifier et me connecter</button>
+  <button id="sendCode" type="button">Recevoir mon lien de connexion</button>
  </div>
  <div id="accountActions" hidden style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
   <span id="trialStatus"></span><button id="signOut" type="button">Se déconnecter</button>
@@ -467,21 +465,17 @@ async function showSession(session) {
 $('sendCode').addEventListener('click',async()=>{
  const email=$('authEmail').value.trim().toLowerCase();
  if(!email||!email.includes('@')){setStatus('Entre une adresse e-mail valide.',true);return;}
- $('sendCode').disabled=true;setStatus('Envoi du code…');
- const {error}=await supabase.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
+ $('sendCode').disabled=true;setStatus('Envoi du lien de connexion…');
+ const {error}=await supabase.auth.signInWithOtp({
+  email,
+  options:{
+   shouldCreateUser:true,
+   emailRedirectTo:'https://murbrique0-dot.github.io/one-piece-card-collection.ch/'
+  }
+ });
  $('sendCode').disabled=false;
  if(error){setStatus('Envoi impossible : '+error.message,true);return;}
- pendingEmail=email;$('authCode').hidden=false;$('verifyCode').hidden=false;
- setStatus('Code envoyé à '+email+'. Vérifie aussi tes courriers indésirables.');
-});
-$('verifyCode').addEventListener('click',async()=>{
- const token=$('authCode').value.trim();
- if(!pendingEmail||!/^[0-9]{6}$/.test(token)){setStatus('Entre le code à 6 chiffres reçu par e-mail.',true);return;}
- $('verifyCode').disabled=true;setStatus('Vérification du code…');
- const {data,error}=await supabase.auth.verifyOtp({email:pendingEmail,token,type:'email'});
- $('verifyCode').disabled=false;
- if(error){setStatus('Code invalide ou expiré : '+error.message,true);return;}
- await showSession(data.session);
+ setStatus('Lien envoyé à '+email+'. Ouvre le message et touche le lien pour te connecter. Vérifie aussi tes courriers indésirables.');
 });
 $('signOut').addEventListener('click',async()=>{
  const {error}=await supabase.auth.signOut();
