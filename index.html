@@ -60,7 +60,7 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 <div class="stat"><b id="totalCount">0</b><br>Versions répertoriées</div>
 </div>
 <section class="filters" aria-label="Filtres du catalogue">
-<input id="search" type="search" placeholder="Nom, numéro, extension…">
+<input id="search" type="search" placeholder="Rechercher par nom ou numéro (ex. OP05-119)…">
 <select id="language" aria-label="Langue">
 <option value="french">Français</option>
 <option value="english">English</option>
@@ -70,6 +70,7 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 <select id="color" aria-label="Couleur"><option value="">Toutes les couleurs</option><option value="red">Rouge</option><option value="green">Vert</option><option value="blue">Bleu</option><option value="purple">Violet</option><option value="black">Noir</option><option value="yellow">Jaune</option></select>
 <select id="category" aria-label="Type"><option value="">Tous les types</option></select>
 <select id="rarity" aria-label="Rareté"><option value="">Toutes les raretés</option></select>
+<select id="version" aria-label="Version"><option value="">Toutes les versions</option><option value="normal">Normale</option><option value="parallel">Parallèle / alternative</option><option value="reprint">Réimpression</option></select>
 <select id="ownership" aria-label="Possession">
 <option value="">Toute la collection</option>
 <option value="missing">À obtenir</option>
@@ -152,6 +153,16 @@ function imageCandidates(c){
  return [...new Set([proxied,proxied.split('%3F')[0],supplied,supplied.split('?')[0]])];
 }
 function imageUrl(c){return imageCandidates(c)[0]||'';}
+function versionOf(id,c){
+ const m=String(id).match(/_(p|r)(\d+)(?:__|$)/i);
+ const v=String(c?.variant||'').toLowerCase();
+ if((m&&m[1].toLowerCase()==='p')||v.includes('parallel')||v.includes('alternate'))return 'parallel';
+ if((m&&m[1].toLowerCase()==='r')||v.includes('reprint'))return 'reprint';
+ return 'normal';
+}
+function normalizeSearch(value){
+ return decodeHtmlText(String(value??'')).normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase().replace(/[^a-z0-9]+/g,'');
+}
 function variantLabel(id,c){
  const m=id.match(/_(p|r)(\d+)(?:__|$)/i);
  if(m)return (m[1].toLowerCase()==='p'?'Illustration parallèle':'Réimpression')+' • '+m[2];
@@ -179,11 +190,12 @@ function fillOptions(id,values,placeholder){
 }
 function render(){
  const q=$('search').value.trim().toLocaleLowerCase();
- const set=$('set').value,color=$('color').value,cat=$('category').value,rarity=$('rarity').value,filter=$('ownership').value;
+ const set=$('set').value,color=$('color').value,cat=$('category').value,rarity=$('rarity').value,version=$('version').value,filter=$('ownership').value;
+ const normalizedQuery=normalizeSearch(q);
  const list=all.filter(c=>{
-  const id=idOf(c),pack=packOf(c),colors=colorsOf(c);
-  const searchable=[c.name,id,pack,c.rarity,c.category,colors.join(' ')].join(' ').toLocaleLowerCase();
-  return (!q||searchable.includes(q))&&(!set||pack===set)&&(!color||colors.includes(color))&&(!cat||c.category===cat)&&(!rarity||c.rarity===rarity)&&(!filter||(filter==='owned'?hasOwned(c):!hasOwned(c)));
+  const id=idOf(c),pack=packOf(c),colors=colorsOf(c),versionType=versionOf(id,c);
+  const searchable=normalizeSearch([c.name,id,pack,c.rarity,c.category,colors.join(' '),variantLabel(id,c),versionType].join(' '));
+  return (!normalizedQuery||searchable.includes(normalizedQuery))&&(!set||pack===set)&&(!color||colors.includes(color))&&(!cat||c.category===cat)&&(!rarity||c.rarity===rarity)&&(!version||versionType===version)&&(!filter||(filter==='owned'?hasOwned(c):!hasOwned(c)));
  });
  const frag=document.createDocumentFragment();
  $('cards').innerHTML='';
@@ -218,7 +230,7 @@ function render(){
   const info=document.createElement('div');info.className='info';
   const name=document.createElement('div');name.className='name';name.textContent=decodeHtmlText(c.name||idOf(c));info.append(name);
   const code=document.createElement('div');code.className='id';code.textContent=idOf(c);info.append(code);
-  const variant=variantLabel(idOf(c),c);if(variant){const v=document.createElement('div');v.className='variant';v.textContent=variant;info.append(v)}
+  const variant=variantLabel(idOf(c),c)||({normal:'Version normale',parallel:'Version parallèle / alternative',reprint:'Réimpression'}[versionOf(idOf(c),c)]);if(variant){const v=document.createElement('div');v.className='variant';v.textContent=variant;info.append(v)}
   const meta=document.createElement('div');meta.className='meta';
   const colorNames=colorsOf(c).map(key=>({red:'Rouge',green:'Vert',blue:'Bleu',purple:'Violet',black:'Noir',yellow:'Jaune'}[key]));
   meta.textContent=[packOf(c),c.rarity,c.category,colorNames.join(' / ')].filter(Boolean).join(' • ');info.append(meta);
@@ -337,7 +349,7 @@ async function load(){
   const retry=document.createElement('button');retry.type='button';retry.textContent='Réessayer le chargement';retry.style.marginLeft='10px';retry.addEventListener('click',load);$('status').append(retry);
  }
 }
-['search','set','color','category','rarity','ownership'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
+['search','set','color','category','rarity','version','ownership'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
 $('language').addEventListener('change',load);
 $('export').addEventListener('click',()=>{
  const payload={format:'one-piece-card-collection',version:2,owned:[...owned]};
