@@ -180,16 +180,30 @@ function render(){
  for(const c of list){
   const card=document.createElement('article');card.className='card';
   const im=document.createElement('img');im.loading='lazy';im.decoding='async';im.alt=decodeHtmlText(c.name||idOf(c))+' '+idOf(c);
-  const imageList=imageCandidates(c);let imageIndex=0;
-  im.onerror=()=>{
-   imageIndex++;
-   if(imageIndex<imageList.length){im.src=imageList[imageIndex];return;}
+  const imageList=imageCandidates(c);let imageIndex=0,imageRetries=0;
+  const showImagePlaceholder=()=>{
    im.onerror=null;
    im.alt='Illustration indisponible : '+idOf(c);
    const svg='<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420" viewBox="0 0 300 420"><rect width="300" height="420" fill="#111c2d"/><text x="150" y="190" fill="#f5c451" text-anchor="middle" font-size="18">Image indisponible</text><text x="150" y="225" fill="#9eacc0" text-anchor="middle" font-size="15">'+idOf(c).replace(/[<>&"]/g,'')+'</text></svg>';
    im.src='data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
   };
-  if(imageList.length)im.src=imageList[0];else im.onerror();
+  const loadNextImage=()=>{
+   if(imageIndex>=imageList.length){showImagePlaceholder();return;}
+   imageRetries=0;im.src=imageList[imageIndex];
+  };
+  im.onerror=()=>{
+   // Une erreur réseau ponctuelle ne doit pas laisser une carte sans image.
+   if(imageRetries<2){
+    imageRetries++;
+    const failedUrl=imageList[imageIndex];
+    const retryUrl=failedUrl+(failedUrl.includes('?')?'&':'?')+'_retry='+Date.now();
+    setTimeout(()=>{im.src=retryUrl;},350*imageRetries);
+    return;
+   }
+   imageIndex++;
+   loadNextImage();
+  };
+  if(imageList.length)loadNextImage();else showImagePlaceholder();
   card.append(im);
   const info=document.createElement('div');info.className='info';
   const name=document.createElement('div');name.className='name';name.textContent=decodeHtmlText(c.name||idOf(c));info.append(name);
