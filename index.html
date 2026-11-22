@@ -161,7 +161,7 @@ function versionOf(id,c){
  return 'normal';
 }
 function normalizeSearch(value){
- return decodeHtmlText(String(value??'')).normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase().replace(/[^a-z0-9]+/g,'');
+ return decodeHtmlText(String(value??'')).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase().replace(/[^a-z0-9]+/g,'');
 }
 function variantLabel(id,c){
  const m=id.match(/_(p|r)(\d+)(?:__|$)/i);
