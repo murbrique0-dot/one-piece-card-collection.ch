@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#101827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
 <meta name="description" content="Catalogue multilingue One Piece Card Game pour suivre gratuitement sa collection.">
 <title>One Piece Card Collection</title>
 <style>
@@ -305,6 +309,7 @@ $('importFile').addEventListener('change',async e=>{
  e.target.value='';
 });
 load();
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(err => console.warn('Service worker indisponible', err))); }
 </script>
 </body>
 </html>
