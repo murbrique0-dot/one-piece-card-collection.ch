@@ -79,6 +79,21 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 <p>Catalogue gratuit One Piece Card Game : recherche tes cartes par numéro, explore les extensions et suis ta collection en français, anglais et japonais.</p>
 </header>
 <main>
+
+<section id="accountBox" style="max-width:720px;margin:14px auto;padding:16px;background:#131e30;border:1px solid #2b3a50;border-radius:13px">
+ <h2 style="margin:0 0 8px;color:#f5c451;font-size:20px">Mon compte</h2>
+ <p id="accountStatus" style="color:#9eacc0;margin:6px 0 12px">Connecte-toi pour sauvegarder ta collection et la retrouver sur tes autres appareils.</p>
+ <div id="authForm" style="display:flex;gap:8px;flex-wrap:wrap">
+  <input id="authEmail" type="email" autocomplete="email" placeholder="Ton adresse e-mail" style="flex:1 1 220px">
+  <button id="sendCode" type="button">Recevoir mon code</button>
+  <input id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Code à 6 chiffres" style="flex:1 1 140px" hidden>
+  <button id="verifyCode" type="button" hidden>Vérifier et me connecter</button>
+ </div>
+ <div id="accountActions" hidden style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+  <span id="trialStatus"></span><button id="signOut" type="button">Se déconnecter</button>
+ </div>
+</section>
+
 <div class="stats">
 <div class="stat" style="flex:2"><b id="ownedCount">0 / 0</b><br><span id="ownedLabel">Possédées dans cette langue</span><div class="collection-progress"><div id="progressFill"></div></div></div>
 <div class="stat"><b id="percent">0%</b><br>Collection complète</div>
@@ -271,6 +286,7 @@ function render(){
    if(cb.checked){owned.add(key);owned.delete(legacy)}else{owned.delete(key);owned.delete(legacy)}
    try{localStorage.setItem('opc-owned-v2',JSON.stringify([...owned]))}catch(e){}
    stats();
+   window.dispatchEvent(new CustomEvent('opc-owned-changed',{detail:{owned:[...owned]}}));
   });
   label.append(cb,document.createTextNode('Je possède'));info.append(label);
   card.append(info);frag.append(card);
@@ -392,6 +408,7 @@ $('importFile').addEventListener('change',async e=>{
   if(valid.length!==list.length)throw new Error('entries');
   owned=new Set(valid.map(x=>typeof x==='string'?(x.includes(':')?x:activeLanguage+':'+x):x.language+':'+x.id));
   localStorage.setItem('opc-owned-v2',JSON.stringify([...owned]));render();
+  window.dispatchEvent(new CustomEvent('opc-owned-changed',{detail:{owned:[...owned]}}));
   $('status').textContent='Sauvegarde importée : '+owned.size+' version(s) enregistrée(s).';
  }catch(error){alert('Sauvegarde invalide ou illisible.')}
  e.target.value='';
@@ -399,5 +416,99 @@ $('importFile').addEventListener('change',async e=>{
 load();
 if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(err => console.warn('Service worker indisponible', err))); }
 </script>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const supabase = createClient(
+ 'https://tyoxjxnphvptxwuhrmre.supabase.co',
+ 'sb_publishable_LUmBLZutv8kSOko9C4qVpg_aSKzPpZL'
+);
+const $ = id => document.getElementById(id);
+let pendingEmail = '';
+let saveTimer = null;
+const setStatus = (message, isError=false) => {
+ const el=$('accountStatus'); el.textContent=message; el.style.color=isError?'#ff9b9b':'#9eacc0';
+};
+const localOwned = () => {
+ try { const v=JSON.parse(localStorage.getItem('opc-owned-v2')||'[]'); return Array.isArray(v)?v:[]; }
+ catch { return []; }
+};
+async function syncCloud(user, mergeLocal=false) {
+ const {data,error}=await supabase.from('user_collections').select('collection_data').eq('user_id',user.id).maybeSingle();
+ if(error) throw error;
+ let values=Array.isArray(data?.collection_data?.owned)?data.collection_data.owned:[];
+ if(mergeLocal) values=[...new Set([...values,...localOwned()])];
+ if(!data || mergeLocal){
+  const {error:saveError}=await supabase.from('user_collections').upsert({user_id:user.id,collection_data:{owned:values},updated_at:new Date().toISOString()});
+  if(saveError) throw saveError;
+ }
+ localStorage.setItem('opc-owned-v2',JSON.stringify(values));
+ window.dispatchEvent(new CustomEvent('opc-cloud-loaded',{detail:{owned:values}}));
+}
+async function showSession(session) {
+ if(!session?.user){
+  $('authForm').hidden=false;$('accountActions').hidden=true;
+  setStatus('Connecte-toi pour sauvegarder ta collection et la retrouver sur tes autres appareils.');
+  return;
+ }
+ $('authForm').hidden=true;$('accountActions').hidden=false;
+ try{
+  const {data:profile,error}=await supabase.from('profiles').select('trial_ends_at,is_admin').eq('id',session.user.id).single();
+  if(error) throw error;
+  const end=new Date(profile.trial_ends_at);
+  const days=Math.max(0,Math.ceil((end-Date.now())/86400000));
+  $('trialStatus').textContent=profile.is_admin?'Compte administrateur — accès illimité':(days>0?'Essai gratuit : '+days+' jour(s) restant(s)':'Essai terminé — accès à la collection suspendu');
+  setStatus('Connecté : '+session.user.email);
+  await syncCloud(session.user,true);
+ }catch(e){
+  setStatus('Connexion réussie, mais impossible de charger le compte : '+e.message,true);
+ }
+}
+$('sendCode').addEventListener('click',async()=>{
+ const email=$('authEmail').value.trim().toLowerCase();
+ if(!email||!email.includes('@')){setStatus('Entre une adresse e-mail valide.',true);return;}
+ $('sendCode').disabled=true;setStatus('Envoi du code…');
+ const {error}=await supabase.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
+ $('sendCode').disabled=false;
+ if(error){setStatus('Envoi impossible : '+error.message,true);return;}
+ pendingEmail=email;$('authCode').hidden=false;$('verifyCode').hidden=false;
+ setStatus('Code envoyé à '+email+'. Vérifie aussi tes courriers indésirables.');
+});
+$('verifyCode').addEventListener('click',async()=>{
+ const token=$('authCode').value.trim();
+ if(!pendingEmail||!/^[0-9]{6}$/.test(token)){setStatus('Entre le code à 6 chiffres reçu par e-mail.',true);return;}
+ $('verifyCode').disabled=true;setStatus('Vérification du code…');
+ const {data,error}=await supabase.auth.verifyOtp({email:pendingEmail,token,type:'email'});
+ $('verifyCode').disabled=false;
+ if(error){setStatus('Code invalide ou expiré : '+error.message,true);return;}
+ await showSession(data.session);
+});
+$('signOut').addEventListener('click',async()=>{
+ const {error}=await supabase.auth.signOut();
+ if(error){setStatus('Déconnexion impossible : '+error.message,true);return;}
+ await showSession(null);
+});
+window.addEventListener('opc-owned-changed',event=>{
+ const {data:{session}}=supabase.auth.getSession().then(x=>x);
+});
+window.addEventListener('opc-owned-changed',async(event)=>{
+ const {data:{session}}=await supabase.auth.getSession();
+ if(!session?.user)return;
+ const values=event.detail?.owned;
+ if(!Array.isArray(values))return;
+ clearTimeout(saveTimer);
+ saveTimer=setTimeout(async()=>{
+  const {error}=await supabase.from('user_collections').upsert({user_id:session.user.id,collection_data:{owned:values},updated_at:new Date().toISOString()});
+  if(error)setStatus('Sauvegarde cloud impossible : '+error.message,true);
+ },500);
+});
+window.addEventListener('opc-cloud-loaded',event=>{
+ // Keep the catalogue's own rendering code in charge of updating the counters.
+});
+const {data:{session}}=await supabase.auth.getSession();
+await showSession(session);
+supabase.auth.onAuthStateChange((_event,newSession)=>{showSession(newSession);});
+</script>
+
 </body>
 </html>
