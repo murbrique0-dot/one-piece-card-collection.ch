@@ -102,15 +102,20 @@ const packOf=c=>{
 };
 const ownedKey=c=>c.category==='Don'?idOf(c):activeLanguage+':'+idOf(c);
 const hasOwned=c=>owned.has(ownedKey(c))||owned.has(idOf(c));
-function imageUrl(c){
- // La base Punk Records fournit déjà l'URL exacte (y compris les variantes).
- // On conserve ses paramètres de version et son extension au lieu de reconstruire l'URL.
+function imageCandidates(c){
+ const id=idOf(c);
  const supplied=c.img_full_url||c.img_url;
- if(supplied)return supplied;
- const hosts={french:'fr',english:'en',japanese:'www'};
- const ext=activeLanguage==='french'?'webp':'png';
- return 'https://'+(hosts[activeLanguage]||'en')+'.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(idOf(c))+'.'+ext;
+ const candidates=[];
+ if(supplied)candidates.push(supplied);
+ // Repli indépendant de la langue : le serveur officiel anglais en PNG est vérifié.
+ if(c.category!=='Don'&&id){
+  candidates.push('https://en.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(id)+'.png');
+  candidates.push('https://fr.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(id)+'.webp');
+  candidates.push('https://www.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(id)+'.png');
+ }
+ return [...new Set(candidates)];
 }
+function imageUrl(c){return imageCandidates(c)[0]||'';}
 function variantLabel(id){
  const m=id.match(/_(p|r)(\d+)$/i);
  if(!m)return '';
@@ -146,21 +151,17 @@ function render(){
  $('cards').innerHTML='';
  for(const c of list){
   const card=document.createElement('article');card.className='card';
-  const im=document.createElement('img');im.loading='lazy';im.decoding='async';im.alt=(c.name||idOf(c))+' '+idOf(c);im.src=imageUrl(c);
-  im.onerror=async()=>{
+  const im=document.createElement('img');im.loading='lazy';im.decoding='async';im.alt=(c.name||idOf(c))+' '+idOf(c);
+  const imageList=imageCandidates(c);let imageIndex=0;
+  im.onerror=()=>{
+   imageIndex++;
+   if(imageIndex<imageList.length){im.src=imageList[imageIndex];return;}
    im.onerror=null;
-   if(c.category!=='Don'&&c.pack_id&&idOf(c)){
-    try{
-     const root=ROOTS[activeLanguage]||ROOT_NEW,rawRoot=activeLanguage==='japanese'?RAW_ROOT_OLD:RAW_ROOT_NEW;
-     const detail=await fetchJson(root+activeLanguage+'/cards/'+c.pack_id+'/'+idOf(c)+'.json',rawRoot+activeLanguage+'/cards/'+c.pack_id+'/'+idOf(c)+'.json');
-     const exact=detail.img_full_url||detail.img_url;
-     if(exact&&im.dataset.exactTried!=='1'){im.dataset.exactTried='1';im.onerror=()=>{im.onerror=null;im.src='data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420"><rect width="300" height="420" fill="#111c2d"/><text x="150" y="205" fill="#f5c451" text-anchor="middle">Image indisponible</text></svg>')};im.src=exact;return;}
-    }catch(detailError){console.warn('Illustration introuvable',idOf(c),detailError)}
-   }
    im.alt='Illustration indisponible : '+idOf(c);
    const svg='<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420" viewBox="0 0 300 420"><rect width="300" height="420" fill="#111c2d"/><text x="150" y="190" fill="#f5c451" text-anchor="middle" font-size="18">Image indisponible</text><text x="150" y="225" fill="#9eacc0" text-anchor="middle" font-size="15">'+idOf(c).replace(/[<>&"]/g,'')+'</text></svg>';
    im.src='data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
   };
+  if(imageList.length)im.src=imageList[0];else im.onerror();
   card.append(im);
   const info=document.createElement('div');info.className='info';
   const name=document.createElement('div');name.className='name';name.textContent=c.name||idOf(c);info.append(name);
