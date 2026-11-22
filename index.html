@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#101827">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="One Piece Cards">
+<link rel="apple-touch-icon" href="./icon.svg">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <meta name="description" content="Catalogue multilingue One Piece Card Game pour suivre gratuitement sa collection.">
@@ -96,8 +98,10 @@ const ROOTS={
 };
 const $=id=>document.getElementById(id);
 let installPrompt=null;
-window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;$('installBtn').hidden=false;});
-$('installBtn').addEventListener('click',async()=>{if(!installPrompt)return;installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;$('installBtn').hidden=true;});
+const isAppleMobile=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.MSStream;
+if(isAppleMobile&&!window.navigator.standalone){$('installBtn').hidden=false;$('installBtn').textContent='Installer sur l’écran d’accueil';}
+window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;$('installBtn').hidden=false;$('installBtn').textContent='Installer l’application';});
+$('installBtn').addEventListener('click',async()=>{if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;$('installBtn').hidden=true;return;}if(isAppleMobile){alert('Pour installer l’application :\n1. Ouvre ce site dans Safari.\n2. Touche le bouton Partager.\n3. Choisis « Sur l’écran d’accueil ».\n4. Touche Ajouter.');}});
 window.addEventListener('appinstalled',()=>{$('installBtn').hidden=true;});
 let all=[],packs={},activeLanguage=$('language').value,owned=new Set();
 try{const saved=JSON.parse(localStorage.getItem('opc-owned-v2')||'null');if(Array.isArray(saved))owned=new Set(saved);else{const legacy=JSON.parse(localStorage.getItem('opc-owned-v1')||'[]');if(Array.isArray(legacy))owned=new Set(legacy.filter(x=>typeof x==='string').map(x=>'french:'+x))}}catch(e){owned=new Set()}
