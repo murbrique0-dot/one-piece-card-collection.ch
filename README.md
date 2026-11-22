@@ -39,4 +39,8 @@ Site : https://murbrique0-dot.github.io/one-piece-card-collection.ch/
 
 ## Droits et transparence
 
-Projet de fans non officiel, sans affiliation avec Bandai. Les noms et illustrations restent la propriété de leurs ayants droit. Vérifier les licences des sources de données et des images avant toute commercialisation.
+Projet de fans non officiel, sans affiliation avec Bandai. Les noms et illustrations restent la propriété de leurs ayants droit. Avant toute commercialisation, il faut vérifier les licences et autorisations applicables aux bases de données, images, marques et éléments de propriété intellectuelle. Le projet ne doit pas laisser croire qu'il est officiel ou approuvé par Bandai.
+
+## Modèle commercial envisagé (pas encore actif)
+
+Le modèle discuté pour une future application est : 10 jours d'essai après la première connexion au compte, puis 5 CHF pour le premier mois d'abonnement, puis 0,50 CHF par mois. Aucun paiement n'est actuellement collecté par ce site. La facturation, les comptes, la résiliation et la synchronisation doivent être développés et testés avant toute annonce commerciale.
