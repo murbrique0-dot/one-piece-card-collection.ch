@@ -110,7 +110,7 @@ function imageCandidates(c){
  if(c.category!=='Don'&&id){
   // CDN indépendant du site Bandai : couvre OP, EB, ST, PRB et les promos.
   const set=id.startsWith('P-')?'P':(id.match(/^([A-Z0-9]+)/)||[])[1]||'';
-  const ids=[id,id.replace(/_(?:p|r)\\d+$/i,'')].filter(Boolean);
+  const ids=[id,id.replace(/_(?:p|r)\d+$/i,'')].filter(Boolean);
   for(const cardId of [...new Set(ids)]){
    if(set)candidates.push('https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/one-piece/'+set+'/'+encodeURIComponent(cardId)+'_EN.webp');
    candidates.push('https://en.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(cardId)+'.png?261016');
