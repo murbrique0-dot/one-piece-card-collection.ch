@@ -18,7 +18,7 @@ Catalogue de fans pour suivre sa collection One Piece Card Game.
 
 - Les coches sont enregistrées localement dans le navigateur et sur l'appareil utilisé. Elles ne se synchronisent pas encore automatiquement entre plusieurs téléphones.
 - Le site ne possède pas encore de création de compte, d'essai de 10 jours, de paiement ou d'abonnement. Ces fonctions nécessitent un service backend et une intégration de paiement sécurisée ; elles ne sont pas activées par le simple affichage des tarifs.
-- Le catalogue japonais provient actuellement d'une source communautaire plus ancienne et peut être moins à jour que les catalogues français et anglais.
+- Le catalogue japonais utilise Punk Records ; sa dernière génération consultée date de septembre 2026 et couvre jusqu'à OP-17. OP-18 japonais n'est pas encore confirmé dans cette source. Les catalogues français et anglais ont une génération plus récente (novembre 2026).
 - Les images sont chargées depuis des sources externes. Certaines illustrations peuvent manquer ou être temporairement indisponibles.
 - La présence de toutes les cartes, variantes Manga, parallèles et promos doit encore être vérifiée extension par extension ; le site ne doit pas être présenté comme exhaustif tant que cet audit n'est pas terminé.
 
