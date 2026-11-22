@@ -101,14 +101,14 @@ const packOf=c=>{
  const id=idOf(c);
  // Les anciens packs OP01-OP08 et EB01/EB04 manquent du fichier packs.json.
  // Le préfixe de l'identifiant carte est plus fiable pour les rattacher.
- const code=id.match(/^(OP|EB|PRB|ST)(\\d{2})-/i);
+ const code=id.match(/^(OP|EB|PRB|ST)(\d{2})-/i);
  if(code)return code[1].toUpperCase()+'-'+code[2];
- if(/^P-\\d+/i.test(id))return 'Carte promo';
+ if(/^P-\d+/i.test(id))return 'Carte promo';
  const p=packs[c.pack_id];
  if(!p)return decodeHtmlText(String(c.pack_id||'Autre'));
  if(p.title_parts&&p.title_parts.label)return decodeHtmlText(p.title_parts.label);
  const raw=p.raw_title||p.title_parts?.title||'';
- const match=raw.match(/[\\[【]([^\\]】]+)[\\]】]/);
+ const match=raw.match(/[\[【](.+?)[\]】]/);
  return decodeHtmlText(match?match[1]:raw||String(c.pack_id||'Autre'));
 };
 const ownedKey=c=>c.category==='Don'?idOf(c):activeLanguage+':'+idOf(c);
