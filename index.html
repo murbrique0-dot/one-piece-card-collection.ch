@@ -92,13 +92,24 @@ const $=id=>document.getElementById(id);
 let all=[],packs={},activeLanguage=$('language').value,owned=new Set();
 try{const saved=JSON.parse(localStorage.getItem('opc-owned-v2')||'null');if(Array.isArray(saved))owned=new Set(saved);else{const legacy=JSON.parse(localStorage.getItem('opc-owned-v1')||'[]');if(Array.isArray(legacy))owned=new Set(legacy.filter(x=>typeof x==='string').map(x=>'french:'+x))}}catch(e){owned=new Set()}
 const idOf=c=>String(c.card_id||c.id||'');
+function decodeHtmlText(value){
+ const el=document.createElement('textarea');let out=String(value??'');
+ for(let i=0;i<3;i++){el.innerHTML=out;const decoded=el.value;if(decoded===out)break;out=decoded}
+ return out;
+}
 const packOf=c=>{
+ const id=idOf(c);
+ // Les anciens packs OP01-OP08 et EB01/EB04 manquent du fichier packs.json.
+ // Le préfixe de l'identifiant carte est plus fiable pour les rattacher.
+ const code=id.match(/^(OP|EB|PRB|ST)(\\d{2})-/i);
+ if(code)return code[1].toUpperCase()+'-'+code[2];
+ if(/^P-\\d+/i.test(id))return 'Carte promo';
  const p=packs[c.pack_id];
- if(!p)return String(c.pack_id||'Autre');
- if(p.title_parts&&p.title_parts.label)return p.title_parts.label;
+ if(!p)return decodeHtmlText(String(c.pack_id||'Autre'));
+ if(p.title_parts&&p.title_parts.label)return decodeHtmlText(p.title_parts.label);
  const raw=p.raw_title||p.title_parts?.title||'';
- const match=raw.match(/[\[【]([^\]】]+)[\]】]/);
- return match?match[1]:raw||String(c.pack_id||'Autre');
+ const match=raw.match(/[\\[【]([^\\]】]+)[\\]】]/);
+ return decodeHtmlText(match?match[1]:raw||String(c.pack_id||'Autre'));
 };
 const ownedKey=c=>c.category==='Don'?idOf(c):activeLanguage+':'+idOf(c);
 const hasOwned=c=>owned.has(ownedKey(c))||owned.has(idOf(c));
@@ -155,7 +166,7 @@ function render(){
  $('cards').innerHTML='';
  for(const c of list){
   const card=document.createElement('article');card.className='card';
-  const im=document.createElement('img');im.loading='lazy';im.decoding='async';im.alt=(c.name||idOf(c))+' '+idOf(c);
+  const im=document.createElement('img');im.loading='lazy';im.decoding='async';im.alt=decodeHtmlText(c.name||idOf(c))+' '+idOf(c);
   const imageList=imageCandidates(c);let imageIndex=0;
   im.onerror=()=>{
    imageIndex++;
@@ -168,7 +179,7 @@ function render(){
   if(imageList.length)im.src=imageList[0];else im.onerror();
   card.append(im);
   const info=document.createElement('div');info.className='info';
-  const name=document.createElement('div');name.className='name';name.textContent=c.name||idOf(c);info.append(name);
+  const name=document.createElement('div');name.className='name';name.textContent=decodeHtmlText(c.name||idOf(c));info.append(name);
   const code=document.createElement('div');code.className='id';code.textContent=idOf(c);info.append(code);
   const variant=variantLabel(idOf(c));if(variant){const v=document.createElement('div');v.className='variant';v.textContent=variant;info.append(v)}
   const meta=document.createElement('div');meta.className='meta';
