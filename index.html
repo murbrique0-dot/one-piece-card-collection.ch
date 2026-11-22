@@ -118,6 +118,7 @@ function decodeHtmlText(value){
  return out;
 }
 const packOf=c=>{
+ if(c.pack_name)return decodeHtmlText(String(c.pack_name));
  const id=idOf(c);
  // Les anciens packs OP01-OP08 et EB01/EB04 manquent du fichier packs.json.
  // Le préfixe de l'identifiant carte est plus fiable pour les rattacher.
@@ -156,10 +157,12 @@ function imageCandidates(c){
  return [...new Set(candidates)];
 }
 function imageUrl(c){return imageCandidates(c)[0]||'';}
-function variantLabel(id){
- const m=id.match(/_(p|r)(\d+)$/i);
- if(!m)return '';
- return (m[1].toLowerCase()==='p'?'Illustration parallèle':'Réimpression')+' • '+m[2];
+function variantLabel(id,c){
+ const m=id.match(/_(p|r)(\d+)(?:__|$)/i);
+ if(m)return (m[1].toLowerCase()==='p'?'Illustration parallèle':'Réimpression')+' • '+m[2];
+ if(c?.variant==='parallel')return 'Illustration parallèle';
+ if(c?.variant==='reprint')return 'Réimpression';
+ return '';
 }
 function stats(){
  const count=all.reduce((n,c)=>n+(hasOwned(c)?1:0),0);
@@ -206,7 +209,7 @@ function render(){
   const info=document.createElement('div');info.className='info';
   const name=document.createElement('div');name.className='name';name.textContent=decodeHtmlText(c.name||idOf(c));info.append(name);
   const code=document.createElement('div');code.className='id';code.textContent=idOf(c);info.append(code);
-  const variant=variantLabel(idOf(c));if(variant){const v=document.createElement('div');v.className='variant';v.textContent=variant;info.append(v)}
+  const variant=variantLabel(idOf(c),c);if(variant){const v=document.createElement('div');v.className='variant';v.textContent=variant;info.append(v)}
   const meta=document.createElement('div');meta.className='meta';
   const colorNames=colorsOf(c).map(key=>({red:'Rouge',green:'Vert',blue:'Bleu',purple:'Violet',black:'Noir',yellow:'Jaune'}[key]));
   meta.textContent=[packOf(c),c.rarity,c.category,colorNames.join(' / ')].filter(Boolean).join(' • ');info.append(meta);
@@ -263,23 +266,51 @@ async function loadDonCards(){
   return {card_id:'DON:'+o.card_key,name:o.name,pack_id:'DON!!',rarity:'DON!!',category:'Don',colors:[],img_full_url:chosen?.image_url||imageByName.get(o.name)||judgeFallback};
  });
 }
+async function loadJapaneseCards(){
+ const base='https://cdn.jsdelivr.net/gh/hotavocado/koala-kollect-data@main/';
+ const raw='https://raw.githubusercontent.com/hotavocado/koala-kollect-data/main/';
+ const files=['data/card_observations/jp.jsonl','data/printings/jp.jsonl','data/products/jp.jsonl','data/printing_products/jp.jsonl'];
+ const texts=await Promise.all(files.map(path=>fetchText(base+path,raw+path)));
+ const parseLines=text=>text.split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line));
+ const observations=parseLines(texts[0]),printings=parseLines(texts[1]),products=parseLines(texts[2]),links=parseLines(texts[3]);
+ const obsByCard=new Map(observations.map(o=>[o.card_key,o]));
+ const productByKey=new Map(products.map(p=>[p.key,p]));
+ const productCodes=new Map();
+ for(const link of links){const product=productByKey.get(link.product_key);if(product?.code){const codes=productCodes.get(link.printing_key)||[];if(!codes.includes(product.code))codes.push(product.code);productCodes.set(link.printing_key,codes)}}
+ const rarityMap={L:'Leader',C:'Common',UC:'Uncommon',R:'Rare',SR:'SuperRare',SEC:'SecretRare',P:'Promo',TR:'TreasureRare','SPカード':'Special'};
+ const categoryMap={leader:'Leader',character:'Character',event:'Event',stage:'Stage',don:'Don'};
+ const usedIds=new Set(),cards=[];
+ for(const printing of printings){
+  const observation=obsByCard.get(printing.card_key);
+  if(!observation||!printing.image_url)continue;
+  const imagePath=printing.image_url.split('/').pop().split('?')[0];
+  let cardId=imagePath.replace(/\.(png|jpe?g|webp)$/i,'')||observation.card_key;
+  if(usedIds.has(cardId))cardId+='__'+printing.key.slice(-6);
+  usedIds.add(cardId);
+  const codes=productCodes.get(printing.key)||[];
+  const packName=codes.length?codes.join(' / '):(printing.source_text.match(/【([^】]+)】/)||[])[1]||'Autres produits';
+  cards.push({card_id:cardId,name:observation.name,pack_name:packName,rarity:rarityMap[printing.rarity]||printing.rarity,category:categoryMap[observation.category]||observation.category,colors:observation.colors||[],cost:observation.cost??null,power:observation.power??null,counter:observation.counter??null,variant:printing.variant,img_full_url:printing.image_url});
+ }
+ return cards;
+}
 async function load(){
  activeLanguage=$('language').value;
  $('status').classList.remove('error');$('status').textContent='Chargement des données officielles indexées…';
  $('cards').innerHTML='';all=[];packs={};stats();
- const root=ROOTS[activeLanguage]||ROOT_NEW;
- try{
-  const rawRoot=activeLanguage==='japanese'?RAW_ROOT_OLD:RAW_ROOT_NEW;
-  const results=await Promise.all([
-   fetchJson(root+activeLanguage+'/packs.json',rawRoot+activeLanguage+'/packs.json'),
-   fetchJson(root+activeLanguage+'/index/cards_by_id.json',rawRoot+activeLanguage+'/index/cards_by_id.json')
-  ]);
-  packs=results[0];
-  // Chaque langue affiche uniquement les cartes réellement présentes dans son index.
-  // Le catalogue français ne doit jamais être complété par des cartes uniquement anglaises.
-  const index=results[1]||{};
-  all=Object.entries(index).map(([key,value])=>({...value,card_id:value.card_id||value.id||key}));
-  all=all.filter(c=>idOf(c));
+  if(activeLanguage==='japanese'){
+   packs={};
+   all=await loadJapaneseCards();
+  }else{
+   const root=ROOTS[activeLanguage]||ROOT_NEW;
+   const results=await Promise.all([
+    fetchJson(root+activeLanguage+'/packs.json',RAW_ROOT_NEW+activeLanguage+'/packs.json'),
+    fetchJson(root+activeLanguage+'/index/cards_by_id.json',RAW_ROOT_NEW+activeLanguage+'/index/cards_by_id.json')
+   ]);
+   packs=results[0];
+   const index=results[1]||{};
+   all=Object.entries(index).map(([key,value])=>({...value,card_id:value.card_id||value.id||key}));
+   all=all.filter(c=>idOf(c));
+  }
   try{const donCards=await loadDonCards();all.push(...donCards)}catch(donError){console.warn('DON!! catalogue indisponible',donError)}
   fillOptions('set',all.map(packOf),'Toutes les extensions / decks');
   fillOptions('category',all.map(c=>c.category),'Tous les types');
