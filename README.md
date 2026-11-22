@@ -1,36 +1,42 @@
 # One Piece Card Collection
 
-Catalogue gratuit pour suivre sa collection One Piece Card Game.
+Catalogue de fans pour suivre sa collection One Piece Card Game.
 
-## Fonctionnalités
+## Fonctionnalités du site
 
-- Langues : français, anglais, japonais, chinois (Hong Kong), chinois (Taïwan) et thaï.
+- Langues disponibles dans l'interface : français, anglais et japonais uniquement.
 - Recherche par nom, numéro, extension et rareté.
-- Filtres par extension/deck, type, rareté et cartes possédées/manquantes.
-- Versions normales, parallèles et réimpressions affichées séparément quand elles sont présentes dans la source.
-- 165 designs DON!! ajoutés depuis le catalogue Koala Kollect ; une seule case par design, sans sélecteur de finition. Les noms DON!! restent en anglais et deux illustrations sont absentes de la source.
-- Une case « Je possède » par version ; les DON!! restent des cartes simples à cocher.
+- Filtres par extension/deck, couleur, type, rareté et cartes possédées/manquantes.
+- Compteurs de cartes possédées, total répertorié et pourcentage pour la langue sélectionnée.
+- Versions normales, parallèles et réimpressions lorsqu'elles sont présentes dans la source de données.
+- Catalogue DON!! ajouté séparément ; les noms DON!! restent en anglais.
+- Une case « Je possède » par version.
 - Sauvegarde locale dans le navigateur, export JSON et import JSON.
-- Collection séparée par langue pour éviter qu'une carte cochée en anglais soit automatiquement cochée en français.
+- Interface adaptée aux écrans mobiles et ajoutable à l'écran d'accueil (PWA).
 
-## Sources et fraîcheur des données
+## Limites actuelles à connaître
 
-Les données françaises, anglaises, chinoises (Hong Kong et Taïwan) et thaïlandaises utilisent [Punk Records](https://github.com/buhbbl/punk-records), un catalogue structuré généré à partir des listes officielles de One Piece Card Game. Les manifests de ces langues étaient générés le 20 novembre 2026 et leurs catalogues comprennent OP-18 et les decks jusqu'à ST-36.
+- Les coches sont enregistrées localement dans le navigateur et sur l'appareil utilisé. Elles ne se synchronisent pas encore automatiquement entre plusieurs téléphones.
+- Le site ne possède pas encore de création de compte, d'essai de 10 jours, de paiement ou d'abonnement. Ces fonctions nécessitent un service backend et une intégration de paiement sécurisée ; elles ne sont pas activées par le simple affichage des tarifs.
+- Le catalogue japonais provient actuellement d'une source communautaire plus ancienne et peut être moins à jour que les catalogues français et anglais.
+- Les images sont chargées depuis des sources externes. Certaines illustrations peuvent manquer ou être temporairement indisponibles.
+- La présence de toutes les cartes, variantes Manga, parallèles et promos doit encore être vérifiée extension par extension ; le site ne doit pas être présenté comme exhaustif tant que cet audit n'est pas terminé.
 
-La source japonaise utilisée actuellement est l'ancienne copie [Kuroro1990/OPTCG](https://github.com/Kuroro1990/OPTCG), car la branche japonaise de Punk Records est vide au moment de cette mise à jour. Cette copie japonaise s'arrête à OP-15 et ne comprend donc pas les sorties japonaises les plus récentes. Le choix japonais est conservé pour ne pas afficher un catalogue vide, mais il n'est pas à jour.
+## Sources
 
-Les variantes sont séparées uniquement lorsqu'elles existent dans la base source (par exemple les identifiants suffixés `_p1`, `_p2` ou `_r1`). Cela ne garantit pas que chaque illustration promotionnelle, Manga ou variante de chaque région soit déjà répertoriée. Les DON!! viennent d'un catalogue communautaire séparé (Koala Kollect, données de produits TCGplayer) : ils sont regroupés par design, sans distinguer les finitions. Les images standard sont chargées depuis les serveurs officiels ; les images DON!! utilisent les liens de leur source et certaines images peuvent être absentes ou indisponibles.
+- Données principales : [Punk Records](https://github.com/buhbbl/punk-records).
+- DON!! : [Koala Kollect](https://github.com/hotavocado/koala-kollect-data).
 
-## Sauvegarde
+## Application mobile
 
-Les coches sont stockées localement dans le navigateur et l'appareil utilisés. Elles ne sont pas synchronisées automatiquement entre appareils. Utilise « Exporter ma collection » pour créer une sauvegarde JSON, puis « Importer une sauvegarde » pour la restaurer.
+Le site est préparé comme une PWA installable sur les appareils compatibles. Cela ne constitue pas encore une publication sur Google Play ou l'Apple App Store. La prochaine étape applicative sera de l'emballer avec Capacitor, puis de mettre en place les comptes, la sauvegarde Cloud et les achats/abonnements via les systèmes de paiement adaptés aux stores.
 
-## Mise en ligne gratuite
+## Mise en ligne
 
-Le dépôt contient un workflow GitHub Actions dans `.github/workflows/deploy.yml`. GitHub Pages publie automatiquement le site après chaque mise à jour sur la branche `main`.
+Le dépôt publie le site avec GitHub Pages sur la branche `main`.
 
 Site : https://murbrique0-dot.github.io/one-piece-card-collection.ch/
 
 ## Droits et transparence
 
-Projet de fans non officiel, sans vente de cartes ni affiliation avec Bandai. Les noms, textes et illustrations restent la propriété de leurs ayants droit. La structure de données Punk Records est publiée sous sa propre licence ; consulte son dépôt pour les conditions de réutilisation. Les données DON!! proviennent de [Koala Kollect](https://github.com/hotavocado/koala-kollect-data), publiées sous licence CC BY 4.0 ; attribution fournie ici.
+Projet de fans non officiel, sans affiliation avec Bandai. Les noms et illustrations restent la propriété de leurs ayants droit. Vérifier les licences des sources de données et des images avant toute commercialisation.
