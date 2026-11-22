@@ -76,7 +76,7 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 <button id="installBtn" type="button" hidden>Installer l’application</button>
 <input id="importFile" type="file" accept="application/json">
 </section>
-<p class="note">Le compteur en haut calcule toute ta collection répertoriée dans la langue choisie, même quand tu recherches ou filtres des cartes. Sur iPhone, ouvre ce site dans Safari, touche Partager puis « Sur l’écran d’accueil » pour l’installer. Sur Android, utilise « Installer l’application » si le navigateur le propose. Les versions normales, parallèles et réimpressions sont affichées séparément lorsqu'elles figurent dans la base de données. Chaque version possède sa propre case. Les cartes DON!! restent de simples cartes à cocher. Les données sont issues de catalogues communautaires construits à partir des listes officielles ; les illustrations appartiennent à leurs ayants droit. Langues disponibles : français, anglais et japonais. La base ajoute aussi les designs DON!! (noms en anglais, sans choix de finition). Attention : la source japonaise actuellement disponible s'arrête à OP-15 ; les catalogues français et anglais disposent de données jusqu'à OP-18.</p>
+<p class="note">Le compteur en haut calcule toute ta collection répertoriée dans la langue choisie, même quand tu recherches ou filtres des cartes. Sur iPhone, ouvre ce site dans Safari, touche Partager puis « Sur l’écran d’accueil » pour l’installer. Sur Android, utilise « Installer l’application » si le navigateur le propose. Les versions normales, parallèles et réimpressions sont affichées séparément lorsqu'elles figurent dans la base de données. Chaque version possède sa propre case. Les cartes DON!! restent de simples cartes à cocher. Les données sont issues de catalogues communautaires construits à partir des listes officielles ; les illustrations appartiennent à leurs ayants droit. Langues disponibles : français, anglais et japonais. La base ajoute aussi les designs DON!! (noms en anglais, sans choix de finition). Attention : la source japonaise actuellement disponible va jusqu'à OP-17 dans sa dernière génération consultée ; OP-18 doit encore être intégré côté japonais. Les catalogues français et anglais disposent de données jusqu'à OP-18.</p>
 <div id="status" role="status" aria-live="polite">Chargement du catalogue…</div>
 <section id="cards" class="grid" aria-label="Cartes"></section>
 </main>
@@ -84,10 +84,10 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 <script>
 'use strict';
 const ROOT_NEW='https://cdn.jsdelivr.net/gh/buhbbl/punk-records@main/';
-const ROOT_OLD='https://cdn.jsdelivr.net/gh/Kuroro1990/OPTCG@main/';
+const ROOT_OLD='https://cdn.jsdelivr.net/gh/buhbbl/punk-records@main/';
 const DON_ROOT='https://cdn.jsdelivr.net/gh/hotavocado/koala-kollect-data@main/';
 const RAW_ROOT_NEW='https://raw.githubusercontent.com/buhbbl/punk-records/main/';
-const RAW_ROOT_OLD='https://raw.githubusercontent.com/Kuroro1990/OPTCG/main/';
+const RAW_ROOT_OLD='https://raw.githubusercontent.com/buhbbl/punk-records/main/';
 const RAW_DON_ROOT='https://raw.githubusercontent.com/hotavocado/koala-kollect-data/main/';
 const ROOTS={
  french:ROOT_NEW,
