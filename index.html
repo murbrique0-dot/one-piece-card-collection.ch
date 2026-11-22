@@ -262,8 +262,8 @@ async function loadDonCards(){
  return observations.map(o=>{
   const rows=byCard.get(o.card_key)||[];
   const chosen=rows.find(p=>p.variant==='normal'&&p.image_url)||rows.find(p=>p.variant==='gold'&&p.image_url)||rows.find(p=>p.image_url);
-  const judgeFallback=o.name==='DON!! Card (Judge Promo Championship 26-27)'?'https://i.ebayimg.com/images/g/SF8AAeSwYFFo4ddE/s-l1200.png':'';
-  return {card_id:'DON:'+o.card_key,name:o.name,pack_id:'DON!!',rarity:'DON!!',category:'Don',colors:[],img_full_url:chosen?.image_url||imageByName.get(o.name)||judgeFallback};
+  // Ne jamais remplacer une illustration absente par une image non vérifiée.
+  return {card_id:'DON:'+o.card_key,name:o.name,pack_id:'DON!!',rarity:'DON!!',category:'Don',colors:[],img_full_url:chosen?.image_url||imageByName.get(o.name)||''};
  });
 }
 async function loadJapaneseCards(){
