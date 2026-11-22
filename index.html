@@ -488,9 +488,6 @@ $('signOut').addEventListener('click',async()=>{
  if(error){setStatus('Déconnexion impossible : '+error.message,true);return;}
  await showSession(null);
 });
-window.addEventListener('opc-owned-changed',event=>{
- const {data:{session}}=supabase.auth.getSession().then(x=>x);
-});
 window.addEventListener('opc-owned-changed',async(event)=>{
  const {data:{session}}=await supabase.auth.getSession();
  if(!session?.user)return;
