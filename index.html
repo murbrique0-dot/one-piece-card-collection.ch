@@ -71,6 +71,15 @@ button:hover{border-color:var(--gold)}
 #status.error{color:#ff9b9b}
 footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);font-size:12px}
 @media(max-width:430px){main{padding:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.stat{min-width:calc(33% - 8px);padding:9px}.stat b{font-size:18px}}
+
+.main-tabs{display:flex;gap:8px;max-width:1450px;margin:14px auto 0;padding:0 16px}
+.tab-button{flex:1;padding:12px;border-radius:10px;font-weight:700}
+.tab-button.active{background:#f5c451;color:#101827;border-color:#f5c451}
+.tab-panel[hidden]{display:none!important}
+.tools-panel{max-width:900px;margin:16px auto;padding:16px;background:var(--panel);border:1px solid var(--line);border-radius:13px}
+.tools-panel h2{color:var(--gold);margin:0 0 8px}
+.tools-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.tools-actions button{flex:1 1 180px}
 </style>
 </head>
 <body>
@@ -78,25 +87,22 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 <h1>☠ One Piece Card Collection</h1>
 <p>Catalogue gratuit One Piece Card Game : recherche tes cartes par numéro, explore les extensions et suis ta collection en français, anglais et japonais.</p>
 </header>
+<nav class="main-tabs" aria-label="Navigation principale">
+ <button type="button" class="tab-button active" data-tab="catalogue">Catalogue</button>
+ <button type="button" class="tab-button" data-tab="espace">Mon espace</button>
+</nav>
+
 <main>
 
-<section id="accountBox" style="max-width:720px;margin:14px auto;padding:16px;background:#131e30;border:1px solid #2b3a50;border-radius:13px">
- <h2 style="margin:0 0 8px;color:#f5c451;font-size:20px">Mon compte</h2>
- <p id="accountStatus" style="color:#9eacc0;margin:6px 0 12px">Connecte-toi pour sauvegarder ta collection et la retrouver sur tes autres appareils.</p>
- <div id="authForm" style="display:flex;gap:8px;flex-wrap:wrap">
-  <input id="authEmail" type="email" autocomplete="email" placeholder="Ton adresse e-mail" style="flex:1 1 220px">
-  <button id="sendCode" type="button">Recevoir mon lien de connexion</button>
- </div>
- <div id="accountActions" hidden style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-  <span id="trialStatus"></span><button id="signOut" type="button">Se déconnecter</button>
- </div>
-</section>
 
+
+<section id="cataloguePanel" class="tab-panel">
 <div class="stats">
 <div class="stat" style="flex:2"><b id="ownedCount">0 / 0</b><br><span id="ownedLabel">Possédées dans cette langue</span><div class="collection-progress"><div id="progressFill"></div></div></div>
 <div class="stat"><b id="percent">0%</b><br>Collection complète</div>
 <div class="stat"><b id="totalCount">0</b><br>Versions répertoriées</div>
 </div>
+
 <section class="filters" aria-label="Filtres du catalogue">
 <input id="search" type="search" placeholder="Rechercher par nom ou numéro (ex. OP05-119)…">
 <select id="language" aria-label="Langue">
@@ -114,14 +120,35 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 <option value="missing">À obtenir</option>
 <option value="owned">Possédées</option>
 </select>
-<button id="export" type="button">Exporter ma collection</button>
-<button id="importBtn" type="button">Importer une sauvegarde</button>
-<button id="installBtn" type="button" hidden>Installer l’application</button>
-<input id="importFile" type="file" accept="application/json">
+
 </section>
 <p class="note">Le compteur en haut calcule toute ta collection répertoriée dans la langue choisie, même quand tu recherches ou filtres des cartes. Sur iPhone, ouvre ce site dans Safari, touche Partager puis « Sur l’écran d’accueil » pour l’installer. Sur Android, utilise « Installer l’application » si le navigateur le propose. Les versions normales, parallèles et réimpressions sont affichées séparément lorsqu'elles figurent dans la base de données. Chaque version possède sa propre case. Les cartes DON!! restent de simples cartes à cocher. Les données sont issues de catalogues communautaires construits à partir des listes officielles ; les illustrations appartiennent à leurs ayants droit. Langues disponibles : français, anglais et japonais. La base ajoute aussi les designs DON!! (noms en anglais, sans choix de finition). Vérification des données : les index français et anglais contiennent respectivement 3 144 et 5 118 versions, chacune avec une URL d’image renseignée ; OP-18 en compte 152 dans chaque langue. Le catalogue japonais utilise Koala Kollect : 4 997 versions (2 822 normales, 1 714 parallèles et 461 réimpressions), toutes avec une URL d’image renseignée, jusqu’à OP-17. OP-18 japonais n’est pas encore présent dans cette source et reste à ajouter.</p>
 <div id="status" role="status" aria-live="polite">Chargement du catalogue…</div>
 <section id="cards" class="grid" aria-label="Cartes"></section>
+</section>
+<section id="espacePanel" class="tab-panel" hidden>
+ <div class="tools-panel">
+  <h2>Mon compte et mes données</h2>
+  <p class="note">Connecte-toi pour retrouver ta collection sur tes autres appareils et gérer tes sauvegardes.</p>
+  <section id="accountBox" style="max-width:720px;margin:14px auto;padding:16px;background:#131e30;border:1px solid #2b3a50;border-radius:13px">
+ <h2 style="margin:0 0 8px;color:#f5c451;font-size:20px">Mon compte</h2>
+ <p id="accountStatus" style="color:#9eacc0;margin:6px 0 12px">Connecte-toi pour sauvegarder ta collection et la retrouver sur tes autres appareils.</p>
+ <div id="authForm" style="display:flex;gap:8px;flex-wrap:wrap">
+  <input id="authEmail" type="email" autocomplete="email" placeholder="Ton adresse e-mail" style="flex:1 1 220px">
+  <button id="sendCode" type="button">Recevoir mon lien de connexion</button>
+ </div>
+ <div id="accountActions" hidden style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+  <span id="trialStatus"></span><button id="signOut" type="button">Se déconnecter</button>
+ </div>
+</section>
+  <div class="tools-actions">
+   <button id="export" type="button">Exporter ma collection</button>
+   <button id="importBtn" type="button">Importer une sauvegarde</button>
+   <button id="installBtn" type="button" hidden>Installer l’application</button>
+   <input id="importFile" type="file" accept="application/json" hidden>
+  </div>
+ </div>
+</section>
 </main>
 <footer>Projet de fans non officiel, gratuit et sans vente de cartes. Données français/anglais : <a href="https://github.com/buhbbl/punk-records" target="_blank" rel="noopener">Punk Records</a> • Japonais et DON!! : <a href="https://github.com/hotavocado/koala-kollect-data" target="_blank" rel="noopener">Koala Kollect</a>. One Piece Card Game appartient à Bandai, Eiichiro Oda, Shueisha et leurs ayants droit. Les coches restent enregistrées dans ce navigateur ; exporte régulièrement une sauvegarde.</footer>
 <script>
@@ -388,6 +415,17 @@ async function load(){
   const retry=document.createElement('button');retry.type='button';retry.textContent='Réessayer le chargement';retry.style.marginLeft='10px';retry.addEventListener('click',load);$('status').append(retry);
  }
 }
+
+document.querySelectorAll('.tab-button').forEach(button=>{
+ button.addEventListener('click',()=>{
+  const target=button.dataset.tab;
+  document.querySelectorAll('.tab-button').forEach(item=>item.classList.toggle('active',item===button));
+  $('cataloguePanel').hidden=target!=='catalogue';
+  $('espacePanel').hidden=target!=='espace';
+  try{history.replaceState(null,'',target==='espace'?'#mon-espace':'#catalogue')}catch(e){}
+ });
+});
+if(location.hash==='#mon-espace')document.querySelector('[data-tab="espace"]').click();
 ['search','set','color','category','rarity','version','ownership'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
 $('language').addEventListener('change',load);
 $('export').addEventListener('click',()=>{
