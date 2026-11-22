@@ -141,7 +141,7 @@ function imageCandidates(c){
  if(c.category==='Don')return [...new Set([supplied,supplied.split('?')[0]])];
  // Bandai peut refuser l’affichage direct depuis GitHub Pages. Essayer d’abord
  // un relais d’images, puis conserver l’URL officielle en secours.
- const clean=supplied.replace(/^https?:\\/\\//i,'');
+ const clean=supplied.replace('https://','').replace('http://','');
  const proxied='https://images.weserv.nl/?url='+encodeURIComponent(clean);
  return [...new Set([proxied,proxied.split('%3F')[0],supplied,supplied.split('?')[0]])];
 }
