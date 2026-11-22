@@ -117,15 +117,20 @@ function imageCandidates(c){
  const id=idOf(c);
  const supplied=c.img_full_url||c.img_url;
  const candidates=[];
- if(supplied)candidates.push(supplied);
+ if(supplied){
+  candidates.push(supplied);
+  // Certains serveurs refusent les anciennes chaînes de version (?261016).
+  candidates.push(supplied.split('?')[0]);
+ }
  if(c.category!=='Don'&&id){
-  // CDN indépendant du site Bandai : couvre OP, EB, ST, PRB et les promos.
+  // CDN communautaire, puis URLs officielles Bandai sans paramètre de cache.
   const set=id.startsWith('P-')?'P':(id.match(/^([A-Z0-9]+)/)||[])[1]||'';
   const ids=[id,id.replace(/_(?:p|r)\d+$/i,'')].filter(Boolean);
   for(const cardId of [...new Set(ids)]){
    if(set)candidates.push('https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/one-piece/'+set+'/'+encodeURIComponent(cardId)+'_EN.webp');
-   candidates.push('https://en.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(cardId)+'.png?261016');
-   candidates.push('https://fr.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(cardId)+'.webp?261016');
+   candidates.push('https://en.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(cardId)+'.png');
+   candidates.push('https://fr.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(cardId)+'.webp');
+   candidates.push('https://www.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(cardId)+'.png');
   }
  }
  return [...new Set(candidates)];
