@@ -297,6 +297,7 @@ async function load(){
  activeLanguage=$('language').value;
  $('status').classList.remove('error');$('status').textContent='Chargement des données officielles indexées…';
  $('cards').innerHTML='';all=[];packs={};stats();
+ try{
   if(activeLanguage==='japanese'){
    packs={};
    all=await loadJapaneseCards();
