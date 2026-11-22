@@ -38,6 +38,8 @@ button:hover{border-color:var(--gold)}
 .id{color:var(--gold);font-size:12px}
 .meta{color:var(--muted);font-size:12px;line-height:1.4}
 .variant{color:#f5d98a;font-size:11px}
+.market-link{display:inline-flex;align-items:center;gap:5px;width:max-content;max-width:100%;color:#f5c451;font-size:12px;font-weight:700;text-decoration:none;border:1px solid #66532b;border-radius:7px;padding:6px 8px;background:#211d14}
+.market-link:hover{background:#352b16;border-color:#f5c451;text-decoration:underline}
 .own{display:flex;gap:8px;align-items:center;padding-top:5px;font-size:13px}
 .own input{width:18px;height:18px;accent-color:var(--green)}
 #status{text-align:center;padding:15px;color:var(--muted)}
@@ -220,6 +222,11 @@ function render(){
   const meta=document.createElement('div');meta.className='meta';
   const colorNames=colorsOf(c).map(key=>({red:'Rouge',green:'Vert',blue:'Bleu',purple:'Violet',black:'Noir',yellow:'Jaune'}[key]));
   meta.textContent=[packOf(c),c.rarity,c.category,colorNames.join(' / ')].filter(Boolean).join(' • ');info.append(meta);
+  const marketQuery=(c.category==='Don'?'DON!! ':'')+decodeHtmlText(c.name||'')+' '+idOf(c);
+  const marketLink=document.createElement('a');marketLink.className='market-link';
+  marketLink.href='https://www.cardmarket.com/fr/OnePiece/Products/Singles?searchString='+encodeURIComponent(marketQuery.trim());
+  marketLink.target='_blank';marketLink.rel='noopener noreferrer';marketLink.textContent='Voir sur Cardmarket ↗';
+  marketLink.setAttribute('aria-label','Rechercher '+marketQuery+' sur Cardmarket');info.append(marketLink);
   const label=document.createElement('label');label.className='own';
   const cb=document.createElement('input');cb.type='checkbox';cb.checked=hasOwned(c);
   cb.addEventListener('change',()=>{
