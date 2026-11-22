@@ -137,9 +137,13 @@ const hasOwned=c=>owned.has(ownedKey(c))||owned.has(idOf(c));
 function imageCandidates(c){
  const supplied=c.img_full_url||c.img_url;
  if(!supplied)return [];
- // Utiliser uniquement l’image associée à cette impression dans la source.
- // Ne pas fabriquer d’URL à partir du numéro : cela peut afficher une autre version.
- return [...new Set([supplied,supplied.split('?')[0]])];
+ // Les images DON!! ont déjà leur propre hébergement fonctionnel : ne pas les modifier.
+ if(c.category==='Don')return [...new Set([supplied,supplied.split('?')[0]])];
+ // Bandai peut refuser l’affichage direct depuis GitHub Pages. Essayer d’abord
+ // un relais d’images, puis conserver l’URL officielle en secours.
+ const clean=supplied.replace(/^https?:\\/\\//i,'');
+ const proxied='https://images.weserv.nl/?url='+encodeURIComponent(clean);
+ return [...new Set([proxied,proxied.split('%3F')[0],supplied,supplied.split('?')[0]])];
 }
 function imageUrl(c){return imageCandidates(c)[0]||'';}
 function variantLabel(id,c){
