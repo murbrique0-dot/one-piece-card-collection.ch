@@ -302,14 +302,13 @@ function render(){
   card.append(im);
   const info=document.createElement('div');info.className='info';
   const name=document.createElement('div');name.className='name';name.textContent=decodeHtmlText(c.name||idOf(c));info.append(name);
-  const marketQuery=idOf(c).trim();
+  const marketQuery=idOf(c);
   const code=document.createElement('div');code.className='id';code.textContent=marketQuery;info.append(code);
-  const marketName=String(c.name||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim().replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'');
   const marketLink=document.createElement('a');marketLink.className='market-link';
-  marketLink.href='https://www.cardmarket.com/en/OnePiece/Cards/'+marketName+'-'+encodeURIComponent(marketQuery)+'/Versions';
+  marketLink.href='https://www.cardmarket.com/fr/OnePiece/Products/Singles?searchString='+encodeURIComponent(marketQuery.trim());
   marketLink.target='_blank';marketLink.rel='noopener noreferrer';marketLink.textContent='Cardmarket lien';
-  marketLink.title='Voir les éditions Cardmarket de '+marketQuery;
-  marketLink.setAttribute('aria-label','Voir les éditions Cardmarket de '+marketQuery);info.append(marketLink);
+  marketLink.title='Voir les éditions de '+marketQuery+' sur Cardmarket';
+  marketLink.setAttribute('aria-label','Voir les éditions de '+marketQuery+' sur Cardmarket');info.append(marketLink);
   const variant=variantLabel(idOf(c),c)||({normal:'Version normale',parallel:'Version parallèle / alternative',reprint:'Réimpression'}[versionOf(idOf(c),c)]);if(variant){const v=document.createElement('div');v.className='variant';v.textContent=variant;info.append(v)}
   const meta=document.createElement('div');meta.className='meta';
   const colorNames=colorsOf(c).map(key=>({red:'Rouge',green:'Vert',blue:'Bleu',purple:'Violet',black:'Noir',yellow:'Jaune'}[key]));
