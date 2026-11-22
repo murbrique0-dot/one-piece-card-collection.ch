@@ -38,7 +38,7 @@ jobs:
           if not js_scripts:
               raise SystemExit('No inline JavaScript found')
           for number, (attrs, script) in enumerate(js_scripts, 1):
-              if re.search(r'type\\s*=\\s*["\\']module["\\']', attrs, flags=re.I):
+              if 'module' in attrs.lower():
                   subprocess.run(['node', '--input-type=module', '--check'], input=script, text=True, check=True)
               else:
                   path = Path(f'/tmp/site-script-{number}.js')
