@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://murbrique0-dot.github.io/one-piece-card-collection.ch/sitemap.xml
