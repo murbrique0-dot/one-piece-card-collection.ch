@@ -234,7 +234,7 @@ function render(){
   const meta=document.createElement('div');meta.className='meta';
   const colorNames=colorsOf(c).map(key=>({red:'Rouge',green:'Vert',blue:'Bleu',purple:'Violet',black:'Noir',yellow:'Jaune'}[key]));
   meta.textContent=[packOf(c),c.rarity,c.category,colorNames.join(' / ')].filter(Boolean).join(' • ');info.append(meta);
-  const marketQuery=(c.category==='Don'?'DON!! ':'')+decodeHtmlText(c.name||'')+' '+idOf(c);
+  const marketQuery=idOf(c);
   const marketLink=document.createElement('a');marketLink.className='market-link';
   marketLink.href='https://www.cardmarket.com/fr/OnePiece/Products/Singles?searchString='+encodeURIComponent(marketQuery.trim());
   marketLink.target='_blank';marketLink.rel='noopener noreferrer';marketLink.textContent='Voir sur Cardmarket ↗';
