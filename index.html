@@ -247,10 +247,20 @@ async function load(){
   const rawRoot=activeLanguage==='japanese'?RAW_ROOT_OLD:RAW_ROOT_NEW;
   const results=await Promise.all([
    fetchJson(root+activeLanguage+'/packs.json',rawRoot+activeLanguage+'/packs.json'),
-   fetchJson(root+activeLanguage+'/index/cards_by_id.json',rawRoot+activeLanguage+'/index/cards_by_id.json')
+   fetchJson(root+activeLanguage+'/index/cards_by_id.json',rawRoot+activeLanguage+'/index/cards_by_id.json'),
+   activeLanguage==='french'
+    ?fetchJson(ROOT_NEW+'english/index/cards_by_id.json',RAW_ROOT_NEW+'english/index/cards_by_id.json')
+    :Promise.resolve(null)
   ]);
   packs=results[0];
-  const index=results[1];
+  // Le catalogue français officiel est incomplet pour plusieurs anciennes séries
+  // et pour les variantes parallèles. On le complète avec les cartes anglaises
+  // manquantes, tout en gardant les noms et données françaises quand ils existent.
+  const localizedIndex=results[1]||{};
+  const englishFallback=results[2]||{};
+  const index=activeLanguage==='french'
+   ?{...englishFallback,...localizedIndex}
+   :localizedIndex;
   all=Object.entries(index).map(([key,value])=>({...value,card_id:value.card_id||value.id||key}));
   all=all.filter(c=>idOf(c));
   try{const donCards=await loadDonCards();all.push(...donCards)}catch(donError){console.warn('DON!! catalogue indisponible',donError)}
