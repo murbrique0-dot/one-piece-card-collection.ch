@@ -59,6 +59,7 @@ footer{max-width:1450px;margin:0 auto;padding:10px 18px 28px;color:var(--muted);
 <option value="japanese">日本語</option>
 </select>
 <select id="set" aria-label="Extension"><option value="">Toutes les extensions / decks</option></select>
+<select id="color" aria-label="Couleur"><option value="">Toutes les couleurs</option><option value="red">Rouge</option><option value="green">Vert</option><option value="blue">Bleu</option><option value="purple">Violet</option><option value="black">Noir</option><option value="yellow">Jaune</option></select>
 <select id="category" aria-label="Type"><option value="">Tous les types</option></select>
 <select id="rarity" aria-label="Rareté"><option value="">Toutes les raretés</option></select>
 <select id="ownership" aria-label="Possession">
@@ -92,6 +93,16 @@ const $=id=>document.getElementById(id);
 let all=[],packs={},activeLanguage=$('language').value,owned=new Set();
 try{const saved=JSON.parse(localStorage.getItem('opc-owned-v2')||'null');if(Array.isArray(saved))owned=new Set(saved);else{const legacy=JSON.parse(localStorage.getItem('opc-owned-v1')||'[]');if(Array.isArray(legacy))owned=new Set(legacy.filter(x=>typeof x==='string').map(x=>'french:'+x))}}catch(e){owned=new Set()}
 const idOf=c=>String(c.card_id||c.id||'');
+const COLOR_ALIASES={
+ red:['red','rouge','r'],green:['green','vert','verte','g'],
+ blue:['blue','bleu','b'],purple:['purple','violet','p'],
+ black:['black','noir','bk','black'],yellow:['yellow','jaune','y']
+};
+function colorsOf(c){
+ const raw=[c.colors,c.color,c.color1,c.color2,c.color_1,c.color_2].flat(Infinity).filter(v=>v!==null&&v!==undefined).join(' ').toLowerCase();
+ const tokens=raw.split(/[^a-zà-ÿ]+/i).filter(Boolean);
+ return Object.entries(COLOR_ALIASES).filter(([,aliases])=>aliases.some(a=>tokens.includes(a))).map(([key])=>key);
+}
 function decodeHtmlText(value){
  const el=document.createElement('textarea');let out=String(value??'');
  for(let i=0;i<3;i++){el.innerHTML=out;const decoded=el.value;if(decoded===out)break;out=decoded}
@@ -161,11 +172,11 @@ function fillOptions(id,values,placeholder){
 }
 function render(){
  const q=$('search').value.trim().toLocaleLowerCase();
- const set=$('set').value,cat=$('category').value,rarity=$('rarity').value,filter=$('ownership').value;
+ const set=$('set').value,color=$('color').value,cat=$('category').value,rarity=$('rarity').value,filter=$('ownership').value;
  const list=all.filter(c=>{
-  const id=idOf(c),pack=packOf(c),colors=Array.isArray(c.colors)?c.colors.join(' '):(c.colors||'');
-  const searchable=[c.name,id,pack,c.rarity,c.category,colors].join(' ').toLocaleLowerCase();
-  return (!q||searchable.includes(q))&&(!set||pack===set)&&(!cat||c.category===cat)&&(!rarity||c.rarity===rarity)&&(!filter||(filter==='owned'?hasOwned(c):!hasOwned(c)));
+  const id=idOf(c),pack=packOf(c),colors=colorsOf(c);
+  const searchable=[c.name,id,pack,c.rarity,c.category,colors.join(' ')].join(' ').toLocaleLowerCase();
+  return (!q||searchable.includes(q))&&(!set||pack===set)&&(!color||colors.includes(color))&&(!cat||c.category===cat)&&(!rarity||c.rarity===rarity)&&(!filter||(filter==='owned'?hasOwned(c):!hasOwned(c)));
  });
  const frag=document.createDocumentFragment();
  $('cards').innerHTML='';
@@ -188,8 +199,8 @@ function render(){
   const code=document.createElement('div');code.className='id';code.textContent=idOf(c);info.append(code);
   const variant=variantLabel(idOf(c));if(variant){const v=document.createElement('div');v.className='variant';v.textContent=variant;info.append(v)}
   const meta=document.createElement('div');meta.className='meta';
-  const colorText=Array.isArray(c.colors)?c.colors.join(' / '):(c.colors||'');
-  meta.textContent=[packOf(c),c.rarity,c.category,colorText].filter(Boolean).join(' • ');info.append(meta);
+  const colorNames=colorsOf(c).map(key=>({red:'Rouge',green:'Vert',blue:'Bleu',purple:'Violet',black:'Noir',yellow:'Jaune'}[key]));
+  meta.textContent=[packOf(c),c.rarity,c.category,colorNames.join(' / ')].filter(Boolean).join(' • ');info.append(meta);
   const label=document.createElement('label');label.className='own';
   const cb=document.createElement('input');cb.type='checkbox';cb.checked=hasOwned(c);
   cb.addEventListener('change',()=>{
@@ -258,14 +269,10 @@ async function load(){
     :Promise.resolve(null)
   ]);
   packs=results[0];
-  // Le catalogue français officiel est incomplet pour plusieurs anciennes séries
-  // et pour les variantes parallèles. On le complète avec les cartes anglaises
-  // manquantes, tout en gardant les noms et données françaises quand ils existent.
+  // Chaque langue affiche uniquement les cartes réellement présentes dans son index.
+  // Le catalogue français ne doit jamais être complété par des cartes uniquement anglaises.
   const localizedIndex=results[1]||{};
-  const englishFallback=results[2]||{};
-  const index=activeLanguage==='french'
-   ?{...englishFallback,...localizedIndex}
-   :localizedIndex;
+  const index=localizedIndex;
   all=Object.entries(index).map(([key,value])=>({...value,card_id:value.card_id||value.id||key}));
   all=all.filter(c=>idOf(c));
   try{const donCards=await loadDonCards();all.push(...donCards)}catch(donError){console.warn('DON!! catalogue indisponible',donError)}
@@ -279,7 +286,7 @@ async function load(){
   const retry=document.createElement('button');retry.type='button';retry.textContent='Réessayer le chargement';retry.style.marginLeft='10px';retry.addEventListener('click',load);$('status').append(retry);
  }
 }
-['search','set','category','rarity','ownership'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
+['search','set','color','category','rarity','ownership'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
 $('language').addEventListener('change',load);
 $('export').addEventListener('click',()=>{
  const payload={format:'one-piece-card-collection',version:2,owned:[...owned]};
