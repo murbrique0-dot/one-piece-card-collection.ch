@@ -30,14 +30,18 @@ jobs:
           import re
           import subprocess
           html = Path('index.html').read_text(encoding='utf-8')
-          scripts = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', html, flags=re.S)
-          if not scripts:
+          scripts = re.findall(r'<script([^>]*)>(.*?)</script>', html, flags=re.S | re.I)
+          js_scripts = [
+              script for attrs, script in scripts
+              if not re.search(r'type\s*=\s*["\']application/ld\+json["\']', attrs, flags=re.I)
+          ]
+          if not js_scripts:
               raise SystemExit('No inline JavaScript found')
-          for number, script in enumerate(scripts, 1):
+          for number, script in enumerate(js_scripts, 1):
               path = Path(f'/tmp/site-script-{number}.js')
               path.write_text(script, encoding='utf-8')
               subprocess.run(['node', '--check', str(path)], check=True)
-          print(f'Validated {len(scripts)} inline JavaScript block(s).')
+          print(f'Validated {len(js_scripts)} inline JavaScript block(s).')
           PY
       - name: Configure Pages
         uses: actions/configure-pages@v5
