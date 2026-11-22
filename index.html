@@ -135,26 +135,11 @@ const packOf=c=>{
 const ownedKey=c=>c.category==='Don'?idOf(c):activeLanguage+':'+idOf(c);
 const hasOwned=c=>owned.has(ownedKey(c))||owned.has(idOf(c));
 function imageCandidates(c){
- const id=idOf(c);
  const supplied=c.img_full_url||c.img_url;
- const candidates=[];
- if(supplied){
-  candidates.push(supplied);
-  // Certains serveurs refusent les anciennes chaînes de version (?261016).
-  candidates.push(supplied.split('?')[0]);
- }
- if(c.category!=='Don'&&id){
-  // CDN communautaire, puis URLs officielles Bandai sans paramètre de cache.
-  const set=id.startsWith('P-')?'P':(id.match(/^([A-Z0-9]+)/)||[])[1]||'';
-  const ids=[id,id.replace(/_(?:p|r)\d+$/i,'')].filter(Boolean);
-  for(const cardId of [...new Set(ids)]){
-   if(set)candidates.push('https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/one-piece/'+set+'/'+encodeURIComponent(cardId)+'_EN.webp');
-   candidates.push('https://en.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(cardId)+'.png');
-   candidates.push('https://fr.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(cardId)+'.webp');
-   candidates.push('https://www.onepiece-cardgame.com/images/cardlist/card/'+encodeURIComponent(cardId)+'.png');
-  }
- }
- return [...new Set(candidates)];
+ if(!supplied)return [];
+ // Utiliser uniquement l’image associée à cette impression dans la source.
+ // Ne pas fabriquer d’URL à partir du numéro : cela peut afficher une autre version.
+ return [...new Set([supplied,supplied.split('?')[0]])];
 }
 function imageUrl(c){return imageCandidates(c)[0]||'';}
 function variantLabel(id,c){
@@ -282,7 +267,7 @@ async function loadJapaneseCards(){
  const usedIds=new Set(),cards=[];
  for(const printing of printings){
   const observation=obsByCard.get(printing.card_key);
-  if(!observation||!printing.image_url)continue;
+  if(!observation)continue;
   const imagePath=printing.image_url.split('/').pop().split('?')[0];
   let cardId=imagePath.replace(/\.(png|jpe?g|webp)$/i,'')||observation.card_key;
   if(usedIds.has(cardId))cardId+='__'+printing.key.slice(-6);
