@@ -18,13 +18,14 @@ Catalogue de fans pour suivre sa collection One Piece Card Game.
 
 - Les coches sont enregistrées localement dans le navigateur et sur l'appareil utilisé. Elles ne se synchronisent pas encore automatiquement entre plusieurs téléphones.
 - Le site ne possède pas encore de création de compte, d'essai de 10 jours, de paiement ou d'abonnement. Ces fonctions nécessitent un service backend et une intégration de paiement sécurisée ; elles ne sont pas activées par le simple affichage des tarifs.
-- Le catalogue japonais utilise Punk Records ; sa dernière génération consultée date de septembre 2026 et couvre jusqu'à OP-17. OP-18 japonais n'est pas encore confirmé dans cette source. Les catalogues français et anglais ont une génération plus récente (novembre 2026).
+- Vérification du 22 novembre 2026 : l'index français contient 3 144 versions et l'anglais 5 118 ; chaque entrée possède une URL d'image renseignée. OP-18 compte 152 versions dans chaque index. Le catalogue japonais utilise Koala Kollect et contient 4 997 versions (2 822 normales, 1 714 parallèles, 461 réimpressions), toutes avec une URL d'image renseignée, jusqu'à OP-17. OP-18 japonais n'est pas encore fourni par cette source et reste à intégrer. Une URL renseignée ne garantit pas à elle seule que le serveur d'image sera toujours disponible.
 - Les images sont chargées depuis des sources externes. Certaines illustrations peuvent manquer ou être temporairement indisponibles.
 - La présence de toutes les cartes, variantes Manga, parallèles et promos doit encore être vérifiée extension par extension ; le site ne doit pas être présenté comme exhaustif tant que cet audit n'est pas terminé.
 
 ## Sources
 
-- Données principales : [Punk Records](https://github.com/buhbbl/punk-records).
+- Données français/anglais : [Punk Records](https://github.com/buhbbl/punk-records).
+- Données japonaises et DON!! : [Koala Kollect](https://github.com/hotavocado/koala-kollect-data).
 - DON!! : [Koala Kollect](https://github.com/hotavocado/koala-kollect-data).
 
 ## Application mobile
