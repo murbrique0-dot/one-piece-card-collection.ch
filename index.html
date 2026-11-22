@@ -61,8 +61,8 @@ button:hover{border-color:var(--gold)}
 .info{padding:9px;display:grid;gap:5px}
 .name{font-weight:700;overflow-wrap:anywhere}
 .id{color:var(--gold);font-size:12px}
-.market-number{width:max-content;max-width:100%;font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-.market-number:hover{color:#fff;text-decoration-thickness:2px}
+.market-link{display:inline-block;width:max-content;margin-top:3px;color:var(--gold);font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.market-link:hover{color:#fff}
 .meta{color:var(--muted);font-size:12px;line-height:1.4}
 .variant{color:#f5d98a;font-size:11px}
 .market-link{display:inline-flex;align-items:center;gap:5px;width:max-content;max-width:100%;color:#f5c451;font-size:12px;font-weight:700;text-decoration:none;border:1px solid #66532b;border-radius:7px;padding:6px 8px;background:#211d14}
@@ -303,10 +303,12 @@ function render(){
   const info=document.createElement('div');info.className='info';
   const name=document.createElement('div');name.className='name';name.textContent=decodeHtmlText(c.name||idOf(c));info.append(name);
   const marketQuery=idOf(c);
-  const code=document.createElement('a');code.className='id market-number';
-  code.href='https://www.cardmarket.com/fr/OnePiece/Products/Singles?searchString='+encodeURIComponent(marketQuery.trim());
-  code.target='_blank';code.rel='noopener noreferrer';code.textContent=marketQuery;
-  code.title='Rechercher '+marketQuery+' sur Cardmarket';code.setAttribute('aria-label','Ouvrir '+marketQuery+' sur Cardmarket');info.append(code);
+  const code=document.createElement('div');code.className='id';code.textContent=marketQuery;info.append(code);
+  const marketLink=document.createElement('a');marketLink.className='market-link';
+  marketLink.href='https://www.cardmarket.com/fr/OnePiece/Products/Singles?searchString='+encodeURIComponent(marketQuery.trim());
+  marketLink.target='_blank';marketLink.rel='noopener noreferrer';marketLink.textContent='Cardmarket lien';
+  marketLink.title='Voir les éditions de '+marketQuery+' sur Cardmarket';
+  marketLink.setAttribute('aria-label','Voir les éditions de '+marketQuery+' sur Cardmarket');info.append(marketLink);
   const variant=variantLabel(idOf(c),c)||({normal:'Version normale',parallel:'Version parallèle / alternative',reprint:'Réimpression'}[versionOf(idOf(c),c)]);if(variant){const v=document.createElement('div');v.className='variant';v.textContent=variant;info.append(v)}
   const meta=document.createElement('div');meta.className='meta';
   const colorNames=colorsOf(c).map(key=>({red:'Rouge',green:'Vert',blue:'Bleu',purple:'Violet',black:'Noir',yellow:'Jaune'}[key]));
