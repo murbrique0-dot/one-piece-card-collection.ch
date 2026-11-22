@@ -500,7 +500,10 @@ window.addEventListener('opc-owned-changed',async(event)=>{
  },500);
 });
 window.addEventListener('opc-cloud-loaded',event=>{
- // Keep the catalogue's own rendering code in charge of updating the counters.
+ const values=event.detail?.owned;
+ if(!Array.isArray(values))return;
+ owned=new Set(values);
+ render();
 });
 const {data:{session}}=await supabase.auth.getSession();
 await showSession(session);
