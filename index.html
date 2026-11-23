@@ -551,15 +551,17 @@ const localOwned = () => {
  try { const v=JSON.parse(localStorage.getItem('opc-owned-v2')||'[]'); return Array.isArray(v)?v:[]; }
  catch { return []; }
 };
-async function syncCloud(user, mergeLocal=false) {
+async function syncCloud(user) {
  const {data,error}=await supabase.from('user_collections').select('collection_data').eq('user_id',user.id).maybeSingle();
  if(error) throw error;
- let values=Array.isArray(data?.collection_data?.owned)?data.collection_data.owned:[];
- if(mergeLocal) values=[...new Set([...values,...localOwned()])];
- if(!data || mergeLocal){
+ // Ne jamais fusionner automatiquement une sauvegarde locale non attribuée :
+ // elle pourrait appartenir à un autre compte utilisé sur le même appareil.
+ const values=Array.isArray(data?.collection_data?.owned)?data.collection_data.owned:[];
+ if(!data){
   const {error:saveError}=await supabase.from('user_collections').upsert({user_id:user.id,collection_data:{owned:values},updated_at:new Date().toISOString()});
   if(saveError) throw saveError;
  }
+ localStorage.setItem('opc-local-owner',user.id);
  localStorage.setItem('opc-owned-v2',JSON.stringify(values));
  window.dispatchEvent(new CustomEvent('opc-cloud-loaded',{detail:{owned:values}}));
 }
@@ -582,7 +584,7 @@ async function showSession(session) {
   setStatus('Connecté : '+session.user.email);
   document.body.classList.remove('auth-locked');
   $('authGate').hidden=true;
-  await syncCloud(session.user,true);
+  await syncCloud(session.user);
  }catch(e){
   document.body.classList.add('auth-locked');
   $('authGate').hidden=false;
