@@ -138,7 +138,7 @@ header{position:relative;padding:62px 14px 25px}
 <select id="color" aria-label="Couleur"><option value="">Toutes les couleurs</option><option value="red">Rouge</option><option value="green">Vert</option><option value="blue">Bleu</option><option value="purple">Violet</option><option value="black">Noir</option><option value="yellow">Jaune</option></select>
 <select id="category" aria-label="Type"><option value="">Tous les types</option></select>
 <select id="rarity" aria-label="Rareté"><option value="">Toutes les raretés</option></select>
-<select id="version" aria-label="Version"><option value="">Toutes les versions</option><option value="normal">Normale</option><option value="parallel">Parallèle / alternative</option><option value="reprint">Réimpression</option></select>
+<select id="version" aria-label="Version"><option value="">Toutes les versions</option><option value="normal">Normale</option><option value="parallel">Parallèle / alternative</option><option value="reprint">Réimpression</option><option value="foil">Brillante (DON!!)</option><option value="gold">Dorée (DON!!)</option></select>
 <select id="ownership" aria-label="Possession">
 <option value="">Toute la collection</option>
 <option value="missing">À obtenir</option>
@@ -246,6 +246,8 @@ function imageUrl(c){return imageCandidates(c)[0]||'';}
 function versionOf(id,c){
  const m=String(id).match(/_(p|r)(\d+)(?:__|$)/i);
  const v=String(c?.variant||'').toLowerCase();
+ if(v==='foil'||v.includes('foil'))return 'foil';
+ if(v==='gold'||v.includes('gold'))return 'gold';
  if((m&&m[1].toLowerCase()==='p')||v.includes('parallel')||v.includes('alternate'))return 'parallel';
  if((m&&m[1].toLowerCase()==='r')||v.includes('reprint'))return 'reprint';
  return 'normal';
