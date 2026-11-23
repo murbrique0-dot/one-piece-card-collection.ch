@@ -238,6 +238,8 @@ function variantLabel(id,c){
  if(m)return (m[1].toLowerCase()==='p'?'Illustration parallèle':'Réimpression')+' • '+m[2];
  if(c?.variant==='parallel')return 'Illustration parallèle';
  if(c?.variant==='reprint')return 'Réimpression';
+ if(c?.variant==='foil')return 'Version brillante';
+ if(c?.variant==='gold')return 'Version dorée';
  return '';
 }
 function stats(){
@@ -348,20 +350,22 @@ async function loadDonCards(){
   fetchText(DON_ROOT+'data/printings/tcgcsv.jsonl',RAW_DON_ROOT+'data/printings/tcgcsv.jsonl')
  ]);
  const observations=observationsText.split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line)).filter(x=>x.category==='don');
- const printings=printingsText.split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line)).filter(x=>x.rarity==='DON'&&x.image_url);
- const byCard=new Map();
- for(const p of printings){const rows=byCard.get(p.card_key)||[];rows.push(p);byCard.set(p.card_key,rows)}
+ const printings=printingsText.split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line)).filter(x=>x.rarity==='DON');
+ const obsByKey=new Map(observations.map(o=>[o.card_key,o]));
  const imageByName=new Map();
- for(const o of observations){
-  const match=(byCard.get(o.card_key)||[]).find(p=>p.image_url);
-  if(match?.image_url&&!imageByName.has(o.name))imageByName.set(o.name,match.image_url);
+ for(const p of printings){
+  const o=obsByKey.get(p.card_key);
+  if(o&&p.image_url&&!imageByName.has(o.name))imageByName.set(o.name,p.image_url);
  }
- return observations.map(o=>{
-  const rows=byCard.get(o.card_key)||[];
-  const chosen=rows.find(p=>p.variant==='normal'&&p.image_url)||rows.find(p=>p.variant==='gold'&&p.image_url)||rows.find(p=>p.image_url);
-  // Ne jamais remplacer une illustration absente par une image non vérifiée.
-  return {card_id:'DON:'+o.card_key,name:o.name,pack_id:'DON!!',rarity:'DON!!',category:'Don',colors:[],img_full_url:chosen?.image_url||imageByName.get(o.name)||''};
- });
+ // Une entrée par impression DON!! (normale, brillante ou dorée), pas seulement une par design.
+ return printings.map(p=>{
+  const o=obsByKey.get(p.card_key);
+  if(!o)return null;
+  let image=p.image_url||imageByName.get(o.name)||'';
+  // Illustration de secours référencée pour la promo Judge 26-27, absente du flux TCGCSV.
+  if(!image&&o.name==='DON!! Card (Judge Promo Championship 26-27)')image='https://tcgplayer-cdn.tcgplayer.com/product/719824_in_1000x1000.jpg';
+  return {card_id:'DON:'+p.key,name:o.name,pack_id:'DON!!',rarity:'DON!!',category:'Don',colors:[],variant:p.variant||'normal',img_full_url:image};
+ }).filter(Boolean);
 }
 async function loadJapaneseCards(){
  const base='https://cdn.jsdelivr.net/gh/hotavocado/koala-kollect-data@main/';
