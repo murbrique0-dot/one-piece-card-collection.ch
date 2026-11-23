@@ -503,7 +503,6 @@ $('menuAccount').addEventListener('click',()=>{
 });
 $('menuImport').addEventListener('click',()=>{$('userMenu').hidden=true;$('importBtn').click();});
 $('menuExport').addEventListener('click',()=>{$('userMenu').hidden=true;$('export').click();});
-$('menuExportBackup').addEventListener('click',()=>{$('userMenu').hidden=true;exportPreviousLocalBackup();});
 $('menuInstall').addEventListener('click',()=>{$('userMenu').hidden=true;installApp();});
 document.addEventListener('click',event=>{
  if(!$('menuToggle').contains(event.target)&&!$('userMenu').contains(event.target)&&!$('accountBox').contains(event.target)){
@@ -571,6 +570,7 @@ function exportPreviousLocalBackup(){
   setTimeout(()=>URL.revokeObjectURL(url),1000);
  }catch(error){setStatus('Impossible de lire la sauvegarde locale précédente.',true);}
 }
+$('menuExportBackup').addEventListener('click',()=>{$('userMenu').hidden=true;exportPreviousLocalBackup();});
 let cloudSyncEnabled = false;
 async function syncCloud(user) {
  cloudSyncEnabled=false;
