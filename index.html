@@ -173,29 +173,56 @@ const ROOTS={
 const $=id=>document.getElementById(id);
 let installPrompt=null;
 const isAppleMobile=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.MSStream;
-if(isAppleMobile&&!window.navigator.standalone){$('installBtn').hidden=false;$('installBtn').textContent='Installer sur l’écran d’accueil';}
-window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;$('installBtn').hidden=false;$('installBtn').textContent='Installer l’application';});
+const isStandalone=()=>window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+function updateInstallLabel(){
+ const button=$('menuInstall');
+ if(isStandalone()){button.textContent='Application déjà installée';button.disabled=true;return;}
+ button.textContent='Installer l’application';button.disabled=false;
+}
+updateInstallLabel();
+if(isAppleMobile&&!isStandalone()){$('installBtn').hidden=false;$('installBtn').textContent='Installer sur l’écran d’accueil';}
+window.addEventListener('beforeinstallprompt',event=>{
+ event.preventDefault();
+ installPrompt=event;
+ $('installBtn').hidden=false;
+ $('installBtn').textContent='Installer l’application';
+ updateInstallLabel();
+});
 async function installApp(){
+ if(isStandalone()){
+  alert('One Piece Card Collection est déjà installée sur cet appareil.');
+  return;
+ }
  if(installPrompt){
-  const promptEvent=installPrompt;installPrompt=null;
-  await promptEvent.prompt();
+  const promptEvent=installPrompt;
+  installPrompt=null;
+  promptEvent.prompt();
   const choice=await promptEvent.userChoice;
-  if(choice?.outcome==='accepted')$('status').textContent='Application ajoutée à ton appareil.';
+  if(choice?.outcome==='accepted'){
+   $('status').textContent='Installation confirmée. One Piece Card Collection sera ajoutée à ton écran d’accueil.';
+  }else{
+   $('status').textContent='Installation annulée. Tu peux réessayer quand tu veux.';
+  }
+  updateInstallLabel();
   return;
  }
  if(isAppleMobile){
-  alert('Pour installer l’application :\n1. Ouvre ce site dans Safari.\n2. Touche le bouton Partager.\n3. Choisis « Sur l’écran d’accueil ».\n4. Touche Ajouter.');
+  alert('Installation sur iPhone/iPad :\n1. Ouvre ce site dans Safari.\n2. Touche Partager.\n3. Choisis « Sur l’écran d’accueil ».\n4. Touche Ajouter.');
   return;
  }
  if(/android/i.test(navigator.userAgent)){
-  alert('Pour installer sur Android :\n1. Ouvre ce site dans Google Chrome.\n2. Touche les trois points ⋮ en haut à droite.\n3. Choisis « Installer l’application » ou « Ajouter à l’écran d’accueil ».\n4. Confirme.');
+  alert('Le navigateur ne propose pas encore la fenêtre automatique.\n\nVérifie que tu es dans Google Chrome, puis :\n1. Touche ⋮ en haut à droite.\n2. Choisis « Installer l’application » ou « Ajouter à l’écran d’accueil ».\n3. Confirme.\n\nSi cette option n’apparaît pas, recharge le site et réessaie.');
   return;
  }
  alert('Ouvre le menu de ton navigateur et cherche « Installer l’application » ou « Ajouter à l’écran d’accueil ».');
 }
-window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;$('installBtn').hidden=false;$('installBtn').textContent='Installer l’application';});
 $('installBtn').addEventListener('click',installApp);
-window.addEventListener('appinstalled',()=>{installPrompt=null;$('installBtn').hidden=true;$('status').textContent='Application installée sur cet appareil.';});
+window.addEventListener('appinstalled',()=>{
+ installPrompt=null;
+ $('installBtn').hidden=true;
+ $('status').textContent='Application installée sur cet appareil.';
+ updateInstallLabel();
+});
 let all=[],packs={},activeLanguage=$('language').value,owned=new Set();
 try{const saved=JSON.parse(localStorage.getItem('opc-owned-v2')||'null');if(Array.isArray(saved))owned=new Set(saved);else{const legacy=JSON.parse(localStorage.getItem('opc-owned-v1')||'[]');if(Array.isArray(legacy))owned=new Set(legacy.filter(x=>typeof x==='string').map(x=>'french:'+x))}}catch(e){owned=new Set()}
 const idOf=c=>String(c.card_id||c.id||'');
