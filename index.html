@@ -290,7 +290,7 @@ function versionOf(id,c){
  return 'normal';
 }
 function normalizeSearch(value){
- return decodeHtmlText(String(value??'')).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase().replace(/[^a-z0-9]+/g,'');
+ return decodeHtmlText(String(value??'')).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase().replace(/[^\p{L}\p{N}\p{M}]+/gu,'');
 }
 function variantLabel(id,c){
  const m=id.match(/_(p|r)(\d+)(?:__|$)/i);
@@ -443,13 +443,14 @@ async function loadJapaneseCards(){
  for(const printing of printings){
   const observation=obsByCard.get(printing.card_key);
   if(!observation)continue;
-  const imagePath=printing.image_url.split('/').pop().split('?')[0];
-  let cardId=imagePath.replace(/\.(png|jpe?g|webp)$/i,'')||observation.card_key;
-  if(usedIds.has(cardId))cardId+='__'+printing.key.slice(-6);
+  const imageUrl=String(printing.image_url||'');
+  const imagePath=imageUrl.split('/').pop().split('?')[0];
+  let cardId=imagePath.replace(/\.(png|jpe?g|webp)$/i,'')||String(observation.card_key||printing.key||'');
+  if(usedIds.has(cardId))cardId+='__'+String(printing.key||'').slice(-6);
   usedIds.add(cardId);
   const codes=productCodes.get(printing.key)||[];
-  const packName=codes.length?codes.join(' / '):(printing.source_text.match(/【([^】]+)】/)||[])[1]||'Autres produits';
-  cards.push({card_id:cardId,name:observation.name,pack_name:packName,rarity:rarityMap[printing.rarity]||printing.rarity,category:categoryMap[observation.category]||observation.category,colors:observation.colors||[],cost:observation.cost??null,power:observation.power??null,counter:observation.counter??null,variant:printing.variant,img_full_url:printing.image_url});
+  const packName=codes.length?codes.join(' / '):(String(printing.source_text||'').match(/【([^】]+)】/)||[])[1]||'Autres produits';
+  cards.push({card_id:cardId,name:observation.name,pack_name:packName,rarity:rarityMap[printing.rarity]||printing.rarity,category:categoryMap[observation.category]||observation.category,colors:observation.colors||[],cost:observation.cost??null,power:observation.power??null,counter:observation.counter??null,variant:printing.variant,img_full_url:imageUrl});
  }
  return cards;
 }
