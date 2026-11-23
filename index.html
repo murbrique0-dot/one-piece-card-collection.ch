@@ -41,7 +41,7 @@
 <style>
 :root{color-scheme:dark;--panel:#131e30;--panel2:#0c1524;--text:#f4f7fb;--muted:#9eacc0;--gold:#f5c451;--line:#2b3a50;--green:#69d6a2}
 *{box-sizing:border-box}
-body{margin:0;background:linear-gradient(140deg,#101b2d,#080d17 60%);color:var(--text);font:15px system-ui,Arial,sans-serif}
+body{margin:0;background:linear-gradient(140deg,#101b2d,#080d17 60%);color:var(--text);font:15px system-ui,Arial,sans-serif} body.auth-locked main,body.auth-locked footer{visibility:hidden} body.auth-locked .menu-wrap{display:none} .auth-gate{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:20px;background:rgba(5,10,18,.97)} .auth-gate[hidden]{display:none!important} .auth-gate-card{width:min(460px,100%);padding:24px;background:#131e30;border:1px solid #66532b;border-radius:16px;box-shadow:0 18px 55px #000b} .auth-gate-card h2{margin:0 0 10px;color:#f5c451;font-size:24px} .auth-gate-card p{color:#c1ccda;line-height:1.5} #authGateForm{display:grid;gap:10px;margin-top:18px} #authGateForm input,#authGateForm button{width:100%} #gateStatus{min-height:24px;color:#9eacc0;font-size:13px;line-height:1.45}
 header{text-align:center;padding:25px 14px;background:#111c2d;border-bottom:1px solid var(--line)}
 h1{margin:0;color:var(--gold);font-size:clamp(24px,5vw,38px)}
 header p,.note,.subtle{color:var(--muted)}
@@ -88,7 +88,7 @@ header{position:relative;padding:62px 14px 25px}
 @media(max-width:600px){header{padding-top:62px}.menu-wrap{right:10px;top:10px}#accountBox{width:min(720px,calc(100vw - 20px))}}
 </style>
 </head>
-<body>
+<body class="auth-locked">
 <header>
 <h1>☠ One Piece Card Collection</h1>
 <p>Catalogue gratuit One Piece Card Game : recherche tes cartes par numéro, explore les extensions et suis ta collection en français, anglais et japonais.</p>
@@ -106,16 +106,25 @@ header{position:relative;padding:62px 14px 25px}
   <section id="accountBox" hidden>
  <h2 style="margin:0 0 8px;color:#f5c451;font-size:20px">Mon compte</h2>
  <p id="accountStatus" style="color:#9eacc0;margin:6px 0 12px">Connecte-toi pour sauvegarder ta collection et la retrouver sur tes autres appareils.</p>
- <div id="authForm" style="display:flex;gap:8px;flex-wrap:wrap">
-  <input id="authEmail" type="email" autocomplete="email" placeholder="Ton adresse e-mail" style="flex:1 1 220px">
-  <button id="sendCode" type="button">Recevoir mon lien de connexion</button>
- </div>
+ 
  <div id="accountActions" hidden style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
   <span id="trialStatus"></span><button id="signOut" type="button">Se déconnecter</button>
  </div>
 </section>
  </div>
 </div>
+<section id="authGate" class="auth-gate" aria-label="Connexion obligatoire">
+ <div class="auth-gate-card">
+  <h2>Bienvenue sur One Piece Card Collection</h2>
+  <p>Pour consulter le catalogue, entre ton adresse e-mail. Tu recevras un lien sécurisé : ouvre-le pour accéder au site.</p>
+  <form id="authGateForm">
+   <input id="gateEmail" type="email" autocomplete="email" placeholder="Ton adresse e-mail" required>
+   <button id="gateSend" type="submit">Recevoir mon lien d’accès</button>
+  </form>
+  <p id="gateStatus" role="status" aria-live="polite">L’adresse e-mail est nécessaire pour accéder au catalogue.</p>
+  <p><strong>Essai initial : 10 jours.</strong> Pour le moment, l’accès restera gratuit ensuite. L’installation sera disponible après la connexion.</p>
+ </div>
+</section>
 <main>
 
 
@@ -556,27 +565,36 @@ async function syncCloud(user, mergeLocal=false) {
 }
 async function showSession(session) {
  if(!session?.user){
-  $('authForm').hidden=false;$('accountActions').hidden=true;
-  setStatus('Connecte-toi pour sauvegarder ta collection et la retrouver sur tes autres appareils.');
+  document.body.classList.add('auth-locked');
+  $('authGate').hidden=false;
+  $('accountActions').hidden=true;
+  setStatus('Entre ton adresse e-mail puis ouvre le lien reçu pour accéder au catalogue.');
+  $('gateStatus').textContent='L’adresse e-mail est nécessaire pour accéder au catalogue.';
   return;
  }
- $('authForm').hidden=true;$('accountActions').hidden=false;
  try{
   const {data:profile,error}=await supabase.from('profiles').select('trial_ends_at,is_admin').eq('id',session.user.id).single();
   if(error) throw error;
   const end=new Date(profile.trial_ends_at);
   const days=Math.max(0,Math.ceil((end-Date.now())/86400000));
-  $('trialStatus').textContent=profile.is_admin?'Compte administrateur — accès illimité':(days>0?'Essai gratuit : '+days+' jour(s) restant(s)':'Essai terminé — accès à la collection suspendu');
+  $('trialStatus').textContent=profile.is_admin?'Compte administrateur — accès illimité':(days>0?'Essai initial : '+days+' jour(s) restant(s) · accès gratuit ensuite pour le moment':'Essai de 10 jours terminé · accès toujours gratuit pour le moment');
+  $('accountActions').hidden=false;
   setStatus('Connecté : '+session.user.email);
+  document.body.classList.remove('auth-locked');
+  $('authGate').hidden=true;
   await syncCloud(session.user,true);
  }catch(e){
+  document.body.classList.add('auth-locked');
+  $('authGate').hidden=false;
   setStatus('Connexion réussie, mais impossible de charger le compte : '+e.message,true);
+  $('gateStatus').textContent='Connexion réussie, mais impossible de charger le compte. Réessaie dans un instant.';
  }
 }
-$('sendCode').addEventListener('click',async()=>{
- const email=$('authEmail').value.trim().toLowerCase();
- if(!email||!email.includes('@')){setStatus('Entre une adresse e-mail valide.',true);return;}
- $('sendCode').disabled=true;setStatus('Envoi du lien de connexion…');
+$('authGateForm').addEventListener('submit',async(event)=>{
+ event.preventDefault();
+ const email=$('gateEmail').value.trim().toLowerCase();
+ if(!email||!email.includes('@')){setStatus('Entre une adresse e-mail valide.',true);$('gateStatus').textContent='Entre une adresse e-mail valide.';return;}
+ $('gateSend').disabled=true;setStatus('Envoi du lien de connexion…');$('gateStatus').textContent='Envoi du lien de connexion…';
  const {error}=await supabase.auth.signInWithOtp({
   email,
   options:{
@@ -584,9 +602,10 @@ $('sendCode').addEventListener('click',async()=>{
    emailRedirectTo:'https://murbrique0-dot.github.io/one-piece-card-collection.ch/'
   }
  });
- $('sendCode').disabled=false;
- if(error){setStatus('Envoi impossible : '+error.message,true);return;}
- setStatus('Lien envoyé à '+email+'. Ouvre le message et touche le lien pour te connecter. Vérifie aussi tes courriers indésirables.');
+ $('gateSend').disabled=false;
+ if(error){setStatus('Envoi impossible : '+error.message,true);$('gateStatus').textContent='Envoi impossible : '+error.message;return;}
+ const message='Lien envoyé à '+email+'. Ouvre le message et touche le lien pour accéder au site. Vérifie aussi tes courriers indésirables.';
+ setStatus(message);$('gateStatus').textContent=message;
 });
 $('signOut').addEventListener('click',async()=>{
  const {error}=await supabase.auth.signOut();
