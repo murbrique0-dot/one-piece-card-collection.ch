@@ -324,7 +324,7 @@ function render(){
   const info=document.createElement('div');info.className='info';
   const name=document.createElement('div');name.className='name';name.textContent=decodeHtmlText(c.name||idOf(c));info.append(name);
   const code=document.createElement('div');code.className='id';code.textContent=idOf(c);info.append(code);
-  const marketQuery=c.category==='Don'?('DON!! '+decodeHtmlText(c.name||'').replace(/^DON!!\\s*Card\\b/i,'').trim()).trim():idOf(c).replace(/_(?:p|r)\d+.*$/i,'').replace(/__[a-z0-9]+$/i,'');
+  const marketQuery=c.category==='Don'?('DON!! '+decodeHtmlText(c.name||'').replace(/^DON!!\s*Card\b/i,'').trim()).trim():idOf(c).replace(/_(?:p|r)\d+.*$/i,'').replace(/__[a-z0-9]+$/i,'');
   const marketLink=document.createElement('a');marketLink.className='market-link';
   marketLink.href='https://www.cardmarket.com/fr/OnePiece/Products/Singles?searchString='+encodeURIComponent(marketQuery);
   marketLink.target='_blank';marketLink.rel='noopener noreferrer';marketLink.textContent='Voir sur Cardmarket';
