@@ -131,7 +131,7 @@ header{position:relative;padding:62px 14px 25px}
 <select id="language" aria-label="Langue">
 <option value="french">Français</option>
 <option value="english">English</option>
-<option value="japanese">日本語</option>
+<option value="japanese">Japonais</option>
 </select>
 <select id="set" aria-label="Extension"><option value="">Toutes les extensions / decks</option></select>
 <select id="color" aria-label="Couleur"><option value="">Toutes les couleurs</option><option value="red">Rouge</option><option value="green">Vert</option><option value="blue">Bleu</option><option value="purple">Violet</option><option value="black">Noir</option><option value="yellow">Jaune</option></select>
@@ -409,7 +409,10 @@ async function load(){
    all=Object.entries(index).map(([key,value])=>({...value,card_id:value.card_id||value.id||key}));
    all=all.filter(c=>idOf(c));
   }
-  try{const donCards=await loadDonCards();all.push(...donCards)}catch(donError){console.warn('DON!! catalogue indisponible',donError)}
+  // Le catalogue TCGCSV utilisé ici est en anglais : ne pas injecter ses DON!! dans les catalogues français ou japonais.
+  if(activeLanguage==='english'){
+   try{const donCards=await loadDonCards();all.push(...donCards)}catch(donError){console.warn('DON!! catalogue indisponible',donError)}
+  }
   fillOptions('set',all.map(packOf),'Toutes les extensions / decks');
   fillOptions('category',all.map(c=>c.category),'Tous les types');
   fillOptions('rarity',all.map(c=>c.rarity),'Toutes les raretés');
