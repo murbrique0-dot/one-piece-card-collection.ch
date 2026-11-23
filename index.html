@@ -302,7 +302,7 @@ function render(){
   card.append(im);
   const info=document.createElement('div');info.className='info';
   const name=document.createElement('div');name.className='name';name.textContent=decodeHtmlText(c.name||idOf(c));info.append(name);
-  const marketQuery=idOf(c);
+  const marketQuery=c.category==='Don'?'DON!! '+decodeHtmlText(c.name||''):idOf(c).replace(/(?:_[pr]\\d+)?(?:__[a-z0-9]+)?$/i,'');
   const code=document.createElement('div');code.className='id';code.textContent=marketQuery;info.append(code);
   const marketLink=document.createElement('a');marketLink.className='market-link';
   marketLink.href='https://www.cardmarket.com/fr/OnePiece/Products/Singles?searchString='+encodeURIComponent(marketQuery);
