@@ -1,9 +1,9 @@
 {
   "name": "One Piece Card Collection",
-  "short_name": "OP Card Collection",
+  "short_name": "One Piece Cards",
   "description": "Catalogue pour suivre sa collection One Piece Card Game.",
   "lang": "fr",
-  "start_url": "./",
+  "id": "./",\n  "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
   "background_color": "#080d17",
@@ -13,7 +13,7 @@
       "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

@@ -145,7 +145,7 @@ header{position:relative;padding:62px 14px 25px}
 </select>
 
 </section>
-<p class="note">Le compteur en haut calcule toute ta collection répertoriée dans la langue choisie, même quand tu recherches ou filtres des cartes. Sur iPhone, ouvre ce site dans Safari, touche Partager puis « Sur l’écran d’accueil » pour l’installer. Sur Android, utilise « Installer l’application » si le navigateur le propose. Les versions normales, parallèles et réimpressions sont affichées séparément lorsqu'elles figurent dans la base de données. Chaque version possède sa propre case. Les cartes DON!! restent de simples cartes à cocher. Les données sont issues de catalogues communautaires construits à partir des listes officielles ; les illustrations appartiennent à leurs ayants droit. Langues disponibles : français, anglais et japonais. La base ajoute aussi les designs DON!! (noms en anglais, sans choix de finition). Vérification des données : les index français et anglais contiennent respectivement 3 144 et 5 118 versions, chacune avec une URL d’image renseignée ; OP-18 en compte 152 dans chaque langue. Le catalogue japonais utilise Koala Kollect : 4 997 versions (2 822 normales, 1 714 parallèles et 461 réimpressions), toutes avec une URL d’image renseignée, jusqu’à OP-17. OP-18 japonais n’est pas encore présent dans cette source et reste à ajouter.</p>
+<p class="note">Le compteur en haut calcule toute ta collection répertoriée dans la langue choisie, même quand tu recherches ou filtres des cartes. Sur iPhone, ouvre ce site dans Safari, touche Partager puis « Sur l’écran d’accueil » pour l’installer. Sur Android, ouvre le menu Options puis « Installer l’application ». Si le bouton natif n’apparaît pas, ouvre le site dans Chrome et choisis ⋮ puis « Installer l’application » ou « Ajouter à l’écran d’accueil ». Les versions normales, parallèles et réimpressions sont affichées séparément lorsqu'elles figurent dans la base de données. Chaque version possède sa propre case. Les cartes DON!! restent de simples cartes à cocher. Les données sont issues de catalogues communautaires construits à partir des listes officielles ; les illustrations appartiennent à leurs ayants droit. Langues disponibles : français, anglais et japonais. La base ajoute aussi les designs DON!! (noms en anglais, sans choix de finition). Vérification des données : les index français et anglais contiennent respectivement 3 144 et 5 118 versions, chacune avec une URL d’image renseignée ; OP-18 en compte 152 dans chaque langue. Le catalogue japonais utilise Koala Kollect : 4 997 versions (2 822 normales, 1 714 parallèles et 461 réimpressions), toutes avec une URL d’image renseignée, jusqu’à OP-17. OP-18 japonais n’est pas encore présent dans cette source et reste à ajouter.</p>
 <div id="status" role="status" aria-live="polite">Chargement du catalogue…</div>
 <section id="cards" class="grid" aria-label="Cartes"></section>
 <div hidden>
@@ -174,8 +174,27 @@ let installPrompt=null;
 const isAppleMobile=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.MSStream;
 if(isAppleMobile&&!window.navigator.standalone){$('installBtn').hidden=false;$('installBtn').textContent='Installer sur l’écran d’accueil';}
 window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;$('installBtn').hidden=false;$('installBtn').textContent='Installer l’application';});
-$('installBtn').addEventListener('click',async()=>{if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;$('installBtn').hidden=true;return;}if(isAppleMobile){alert('Pour installer l’application :\n1. Ouvre ce site dans Safari.\n2. Touche le bouton Partager.\n3. Choisis « Sur l’écran d’accueil ».\n4. Touche Ajouter.');}});
-window.addEventListener('appinstalled',()=>{$('installBtn').hidden=true;});
+async function installApp(){
+ if(installPrompt){
+  const promptEvent=installPrompt;installPrompt=null;
+  await promptEvent.prompt();
+  const choice=await promptEvent.userChoice;
+  if(choice?.outcome==='accepted')$('status').textContent='Application ajoutée à ton appareil.';
+  return;
+ }
+ if(isAppleMobile){
+  alert('Pour installer l’application :\\n1. Ouvre ce site dans Safari.\\n2. Touche le bouton Partager.\\n3. Choisis « Sur l’écran d’accueil ».\\n4. Touche Ajouter.');
+  return;
+ }
+ if(/android/i.test(navigator.userAgent)){
+  alert('Pour installer sur Android :\\n1. Ouvre ce site dans Google Chrome.\\n2. Touche les trois points ⋮ en haut à droite.\\n3. Choisis « Installer l’application » ou « Ajouter à l’écran d’accueil ».\\n4. Confirme.');
+  return;
+ }
+ alert('Ouvre le menu de ton navigateur et cherche « Installer l’application » ou « Ajouter à l’écran d’accueil ».');
+}
+window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;$('installBtn').hidden=false;$('installBtn').textContent='Installer l’application';});
+$('installBtn').addEventListener('click',installApp);
+window.addEventListener('appinstalled',()=>{installPrompt=null;$('installBtn').hidden=true;$('status').textContent='Application installée sur cet appareil.';});
 let all=[],packs={},activeLanguage=$('language').value,owned=new Set();
 try{const saved=JSON.parse(localStorage.getItem('opc-owned-v2')||'null');if(Array.isArray(saved))owned=new Set(saved);else{const legacy=JSON.parse(localStorage.getItem('opc-owned-v1')||'[]');if(Array.isArray(legacy))owned=new Set(legacy.filter(x=>typeof x==='string').map(x=>'french:'+x))}}catch(e){owned=new Set()}
 const idOf=c=>String(c.card_id||c.id||'');
@@ -444,7 +463,7 @@ $('menuAccount').addEventListener('click',()=>{
 });
 $('menuImport').addEventListener('click',()=>{$('userMenu').hidden=true;$('importBtn').click();});
 $('menuExport').addEventListener('click',()=>{$('userMenu').hidden=true;$('export').click();});
-$('menuInstall').addEventListener('click',()=>{$('userMenu').hidden=true;$('installBtn').click();});
+$('menuInstall').addEventListener('click',()=>{$('userMenu').hidden=true;installApp();});
 document.addEventListener('click',event=>{
  if(!$('menuToggle').contains(event.target)&&!$('userMenu').contains(event.target)&&!$('accountBox').contains(event.target)){
   $('userMenu').hidden=true;$('menuToggle').setAttribute('aria-expanded','false');
