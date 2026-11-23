@@ -45,3 +45,4 @@ Projet de fans non officiel, sans affiliation avec Bandai. Les noms et illustrat
 ## Modèle commercial envisagé (pas encore actif)
 
 Le modèle discuté pour une future application est : 10 jours d'essai après la première connexion au compte, puis 5 CHF pour le premier mois d'abonnement, puis 0,50 CHF par mois. Aucun paiement n'est actuellement collecté par ce site. La facturation, les comptes, la résiliation et la synchronisation doivent être développés et testés avant toute annonce commerciale.
+
