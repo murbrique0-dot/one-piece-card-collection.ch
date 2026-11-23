@@ -101,6 +101,7 @@ header{position:relative;padding:62px 14px 25px}
    <button type="button" class="menu-item" id="menuPay" disabled>Payer (facultatif) — bientôt</button>
    <button type="button" class="menu-item" id="menuImport">Importer une sauvegarde</button>
    <button type="button" class="menu-item" id="menuExport">Exporter ma collection</button>
+   <button type="button" class="menu-item" id="menuExportBackup" hidden>Exporter l’ancienne collection locale</button>
    <button type="button" class="menu-item" id="menuInstall">Installer l’application</button>
   </div>
   <section id="accountBox" hidden>
@@ -502,6 +503,7 @@ $('menuAccount').addEventListener('click',()=>{
 });
 $('menuImport').addEventListener('click',()=>{$('userMenu').hidden=true;$('importBtn').click();});
 $('menuExport').addEventListener('click',()=>{$('userMenu').hidden=true;$('export').click();});
+$('menuExportBackup').addEventListener('click',()=>{$('userMenu').hidden=true;exportPreviousLocalBackup();});
 $('menuInstall').addEventListener('click',()=>{$('userMenu').hidden=true;installApp();});
 document.addEventListener('click',event=>{
  if(!$('menuToggle').contains(event.target)&&!$('userMenu').contains(event.target)&&!$('accountBox').contains(event.target)){
@@ -551,6 +553,24 @@ const localOwned = () => {
  try { const v=JSON.parse(localStorage.getItem('opc-owned-v2')||'[]'); return Array.isArray(v)?v:[]; }
  catch { return []; }
 };
+function updateBackupExportButton(){
+ const button=$('menuExportBackup');
+ if(!button)return;
+ button.hidden=!Object.keys(localStorage).some(key=>key.startsWith('opc-device-backup-'));
+}
+function exportPreviousLocalBackup(){
+ const key=Object.keys(localStorage).filter(key=>key.startsWith('opc-device-backup-')).sort().pop();
+ if(!key){updateBackupExportButton();return;}
+ try{
+  const values=JSON.parse(localStorage.getItem(key)||'[]');
+  if(!Array.isArray(values))throw new Error('format');
+  const payload={format:'one-piece-card-collection',version:2,owned:values};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='ancienne-collection-one-piece.json';a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+ }catch(error){setStatus('Impossible de lire la sauvegarde locale précédente.',true);}
+}
 let cloudSyncEnabled = false;
 async function syncCloud(user) {
  cloudSyncEnabled=false;
@@ -568,7 +588,7 @@ async function syncCloud(user) {
     return;
    }
    const backupKey='opc-device-backup-'+(localOwner||'unassigned');
-   try{localStorage.setItem(backupKey,JSON.stringify(localValues));}catch(e){}
+   try{localStorage.setItem(backupKey,JSON.stringify(localValues));updateBackupExportButton();}catch(e){}
   }
   const values=Array.isArray(data.collection_data?.owned)?data.collection_data.owned:[];
   localStorage.setItem('opc-local-owner',user.id);
@@ -641,6 +661,7 @@ $('authGateForm').addEventListener('submit',async(event)=>{
  const message='Lien envoyé à '+email+'. Ouvre le message et touche le lien pour accéder au site. Vérifie aussi tes courriers indésirables.';
  setStatus(message);$('gateStatus').textContent=message;
 });
+updateBackupExportButton();
 $('signOut').addEventListener('click',async()=>{
  const {error}=await supabase.auth.signOut();
  cloudSyncEnabled=false;
