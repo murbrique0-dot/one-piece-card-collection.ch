@@ -580,6 +580,17 @@ async function syncCloud(user) {
  const localValues=localOwned();
  const localOwner=localStorage.getItem('opc-local-owner')||'';
  if(data){
+  const values=Array.isArray(data.collection_data?.owned)?data.collection_data.owned:[];
+  const localDiffers=JSON.stringify([...localValues].sort())!==JSON.stringify([...values].sort());
+  // Protéger aussi les changements hors ligne du même compte avant de recharger le Cloud.
+  if(localValues.length && localOwner===user.id && localDiffers){
+   const keepCloud=confirm('La collection locale et la collection Cloud de ce compte sont différentes.\n\nOK : charger la collection Cloud et conserver une copie locale exportable.\nAnnuler : garder la collection locale et suspendre la synchronisation pour cette session.');
+   if(!keepCloud){
+    setStatus('Collection locale conservée. La synchronisation Cloud est en pause : exporte ta sauvegarde avant de recharger.',true);
+    return;
+   }
+   try{localStorage.setItem('opc-device-backup-'+user.id,JSON.stringify(localValues));updateBackupExportButton();}catch(e){}
+  }
   // Sur un appareil partagé, ne jamais écraser silencieusement une collection
   // locale qui appartient à un autre compte ou qui n'a pas encore de propriétaire.
   if(localValues.length && localOwner!==user.id){
@@ -591,7 +602,6 @@ async function syncCloud(user) {
    const backupKey='opc-device-backup-'+(localOwner||'unassigned');
    try{localStorage.setItem(backupKey,JSON.stringify(localValues));updateBackupExportButton();}catch(e){}
   }
-  const values=Array.isArray(data.collection_data?.owned)?data.collection_data.owned:[];
   localStorage.setItem('opc-local-owner',user.id);
   localStorage.setItem('opc-owned-v2',JSON.stringify(values));
   cloudSyncEnabled=true;
