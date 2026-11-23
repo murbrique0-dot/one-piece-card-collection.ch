@@ -165,7 +165,7 @@ header{position:relative;padding:62px 14px 25px}
  <input id="importFile" type="file" accept="application/json">
 </div>
 </main>
-<footer>Projet de fans non officiel, gratuit et sans vente de cartes. Données français/anglais : <a href="https://github.com/buhbbl/punk-records" target="_blank" rel="noopener">Punk Records</a> • Japonais et DON!! : <a href="https://github.com/hotavocado/koala-kollect-data" target="_blank" rel="noopener">Koala Kollect</a>. One Piece Card Game appartient à Bandai, Eiichiro Oda, Shueisha et leurs ayants droit. Les coches restent enregistrées dans ce navigateur ; exporte régulièrement une sauvegarde.</footer>
+<footer>Projet de fans non officiel et sans affiliation avec Bandai. Les données français/anglais proviennent de <a href="https://github.com/buhbbl/punk-records" target="_blank" rel="noopener">Punk Records</a> ; les données japonaises et DON!! de <a href="https://github.com/hotavocado/koala-kollect-data" target="_blank" rel="noopener">Koala Kollect</a>. One Piece Card Game et ses illustrations appartiennent à leurs ayants droit. Les collections des comptes connectés sont synchronisées avec le Cloud ; exporte régulièrement une sauvegarde JSON par précaution.</footer>
 <script>
 'use strict';
 const ROOT_NEW='https://cdn.jsdelivr.net/gh/buhbbl/punk-records@main/';
@@ -551,18 +551,50 @@ const localOwned = () => {
  try { const v=JSON.parse(localStorage.getItem('opc-owned-v2')||'[]'); return Array.isArray(v)?v:[]; }
  catch { return []; }
 };
+let cloudSyncEnabled = false;
 async function syncCloud(user) {
+ cloudSyncEnabled=false;
  const {data,error}=await supabase.from('user_collections').select('collection_data').eq('user_id',user.id).maybeSingle();
  if(error) throw error;
- // Ne jamais fusionner automatiquement une sauvegarde locale non attribuée :
- // elle pourrait appartenir à un autre compte utilisé sur le même appareil.
- const values=Array.isArray(data?.collection_data?.owned)?data.collection_data.owned:[];
- if(!data){
-  const {error:saveError}=await supabase.from('user_collections').upsert({user_id:user.id,collection_data:{owned:values},updated_at:new Date().toISOString()});
-  if(saveError) throw saveError;
+ const localValues=localOwned();
+ const localOwner=localStorage.getItem('opc-local-owner')||'';
+ if(data){
+  // Sur un appareil partagé, ne jamais écraser silencieusement une collection
+  // locale qui appartient à un autre compte ou qui n'a pas encore de propriétaire.
+  if(localValues.length && localOwner!==user.id){
+   const keepCloud=confirm('Une collection locale existe déjà sur cet appareil.\n\nOK : charger la collection Cloud de ce compte. Une copie locale sera conservée sur cet appareil.\nAnnuler : garder la collection locale et désactiver la synchronisation pour cette session.');
+   if(!keepCloud){
+    setStatus('Collection locale conservée. La synchronisation Cloud est en pause : exporte ta sauvegarde avant de changer de compte.',true);
+    return;
+   }
+   const backupKey='opc-device-backup-'+(localOwner||'unassigned');
+   try{localStorage.setItem(backupKey,JSON.stringify(localValues));}catch(e){}
+  }
+  const values=Array.isArray(data.collection_data?.owned)?data.collection_data.owned:[];
+  localStorage.setItem('opc-local-owner',user.id);
+  localStorage.setItem('opc-owned-v2',JSON.stringify(values));
+  cloudSyncEnabled=true;
+  window.dispatchEvent(new CustomEvent('opc-cloud-loaded',{detail:{owned:values}}));
+  return;
  }
+ // Aucun enregistrement Cloud : migrer uniquement après vérification du propriétaire
+ // ou après accord explicite de l'utilisateur.
+ let values=[];
+ if(localOwner===user.id){
+  values=localValues;
+ }else if(localValues.length){
+  const importLocal=confirm('Une collection enregistrée sur cet appareil ne correspond pas encore à ce compte Cloud.\n\nOK : importer cette collection dans le compte connecté.\nAnnuler : la conserver localement sans l’envoyer au Cloud.');
+  if(!importLocal){
+   setStatus('Collection locale conservée. Elle ne sera pas synchronisée tant que tu n’auras pas choisi de l’importer.',true);
+   return;
+  }
+  values=localValues;
+ }
+ const {error:saveError}=await supabase.from('user_collections').upsert({user_id:user.id,collection_data:{owned:values},updated_at:new Date().toISOString()});
+ if(saveError) throw saveError;
  localStorage.setItem('opc-local-owner',user.id);
  localStorage.setItem('opc-owned-v2',JSON.stringify(values));
+ cloudSyncEnabled=true;
  window.dispatchEvent(new CustomEvent('opc-cloud-loaded',{detail:{owned:values}}));
 }
 async function showSession(session) {
@@ -611,12 +643,13 @@ $('authGateForm').addEventListener('submit',async(event)=>{
 });
 $('signOut').addEventListener('click',async()=>{
  const {error}=await supabase.auth.signOut();
+ cloudSyncEnabled=false;
  if(error){setStatus('Déconnexion impossible : '+error.message,true);return;}
  await showSession(null);
 });
 window.addEventListener('opc-owned-changed',async(event)=>{
  const {data:{session}}=await supabase.auth.getSession();
- if(!session?.user)return;
+ if(!session?.user||!cloudSyncEnabled)return;
  const values=event.detail?.owned;
  if(!Array.isArray(values))return;
  clearTimeout(saveTimer);
