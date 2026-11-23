@@ -1,48 +1,48 @@
 # One Piece Card Collection
 
-Catalogue de fans pour suivre sa collection One Piece Card Game.
+Catalogue de fans non officiel pour rechercher des cartes One Piece Card Game et suivre sa collection.
 
-## Fonctionnalités du site
+## Fonctionnalités disponibles
 
-- Langues disponibles dans l'interface : français, anglais et japonais uniquement.
-- Recherche par nom, numéro, extension et rareté.
-- Filtres par extension/deck, couleur, type, rareté et cartes possédées/manquantes.
-- Compteurs de cartes possédées, total répertorié et pourcentage pour la langue sélectionnée.
-- Versions normales, parallèles et réimpressions lorsqu'elles sont présentes dans la source de données.
-- Catalogue DON!! ajouté séparément ; les noms DON!! restent en anglais.
-- Une case « Je possède » par version.
-- Sauvegarde locale dans le navigateur, export JSON et import JSON.
-- Interface adaptée aux écrans mobiles et ajoutable à l'écran d'accueil (PWA).
+- Interface en français, anglais et japonais.
+- Catalogue avec recherche par nom ou numéro.
+- Filtres par extension/deck, couleur, type, rareté, version et possession.
+- Versions normales, parallèles et réimpressions lorsqu'elles existent dans les sources de données.
+- Catalogue DON!! séparé, avec ses variantes disponibles.
+- Cases de possession individuelles et statistiques par langue.
+- Comptes par lien e-mail sécurisé via Supabase.
+- Synchronisation Cloud des collections des comptes connectés.
+- Import et export JSON pour sauvegarder ou transférer une collection.
+- Application web progressive (PWA) installable sur les appareils compatibles.
 
-## Limites actuelles à connaître
+## Synchronisation et sauvegardes
 
-- Les coches sont enregistrées localement dans le navigateur et sur l'appareil utilisé. Elles ne se synchronisent pas encore automatiquement entre plusieurs téléphones.
-- Le site ne possède pas encore de création de compte, d'essai de 10 jours, de paiement ou d'abonnement. Ces fonctions nécessitent un service backend et une intégration de paiement sécurisée ; elles ne sont pas activées par le simple affichage des tarifs.
-- Vérification du 22 novembre 2026 : l'index français contient 3 144 versions et l'anglais 5 118 ; chaque entrée possède une URL d'image renseignée. OP-18 compte 152 versions dans chaque index. Le catalogue japonais utilise Koala Kollect et contient 4 997 versions (2 822 normales, 1 714 parallèles, 461 réimpressions), toutes avec une URL d'image renseignée, jusqu'à OP-17. OP-18 japonais n'est pas encore fourni par cette source et reste à intégrer. Une URL renseignée ne garantit pas à elle seule que le serveur d'image sera toujours disponible.
-- Les images sont chargées depuis des sources externes. Certaines illustrations peuvent manquer ou être temporairement indisponibles.
-- La présence de toutes les cartes, variantes Manga, parallèles et promos doit encore être vérifiée extension par extension ; le site ne doit pas être présenté comme exhaustif tant que cet audit n'est pas terminé.
+Les collections Cloud sont associées au compte connecté. Sur un appareil qui contient déjà une collection locale, le site demande confirmation avant de l'importer ou de la remplacer par la collection Cloud. Si l'utilisateur refuse, la collection locale est conservée et la synchronisation est mise en pause pour cette session.
 
-## Sources
+Il est recommandé d'exporter régulièrement une sauvegarde JSON depuis le menu Options. La PWA n'est pas une publication sur Google Play ou l'Apple App Store.
 
-- Données français/anglais : [Punk Records](https://github.com/buhbbl/punk-records).
-- Données japonaises et DON!! : [Koala Kollect](https://github.com/hotavocado/koala-kollect-data).
-- DON!! : [Koala Kollect](https://github.com/hotavocado/koala-kollect-data).
+## Sources des données
 
-## Application mobile
+- Français et anglais : [Punk Records](https://github.com/buhbbl/punk-records).
+- Japonais et DON!! : [Koala Kollect](https://github.com/hotavocado/koala-kollect-data).
+- Les sources sont communautaires. Une URL d'image présente dans une base ne garantit pas que l'image sera toujours accessible.
 
-Le site est préparé comme une PWA installable sur les appareils compatibles. Cela ne constitue pas encore une publication sur Google Play ou l'Apple App Store. La prochaine étape applicative sera de l'emballer avec Capacitor, puis de mettre en place les comptes, la sauvegarde Cloud et les achats/abonnements via les systèmes de paiement adaptés aux stores.
+Les index français et anglais recensés dans le projet contiennent respectivement 3 144 et 5 118 versions. OP-18 compte 152 entrées dans chaque index. La source japonaise recensée contient 4 997 versions jusqu'à OP-17 ; OP-18 japonais n'y est pas présent. Ces nombres sont des instantanés de la base et peuvent évoluer. Ils ne constituent pas une garantie d'exhaustivité de toutes les cartes, variantes et promotions.
 
-## Mise en ligne
+## Déploiement
 
-Le dépôt publie le site avec GitHub Pages sur la branche `main`.
+Le dépôt publie le site avec GitHub Pages depuis la branche `main`.
 
 Site : https://murbrique0-dot.github.io/one-piece-card-collection.ch/
 
-## Droits et transparence
+## Limites et transparence
 
-Projet de fans non officiel, sans affiliation avec Bandai. Les noms et illustrations restent la propriété de leurs ayants droit. Avant toute commercialisation, il faut vérifier les licences et autorisations applicables aux bases de données, images, marques et éléments de propriété intellectuelle. Le projet ne doit pas laisser croire qu'il est officiel ou approuvé par Bandai.
+- Le bouton de paiement est désactivé : aucun paiement ni abonnement n'est actuellement activé.
+- L'indication d'essai de 10 jours est informative ; elle ne bloque pas l'accès après expiration.
+- Les comptes et collections privées sont gérés par Supabase avec des règles d'accès côté base de données. Le catalogue et les fichiers publics du site restent accessibles publiquement.
+- Les liens Cardmarket ouvrent une recherche par numéro de carte ; il faut vérifier la langue et la version exacte sur Cardmarket.
+- Les données et illustrations peuvent être soumises aux conditions de leurs fournisseurs et ayants droit.
 
-## Modèle commercial envisagé (pas encore actif)
+## Droits
 
-Le modèle discuté pour une future application est : 10 jours d'essai après la première connexion au compte, puis 5 CHF pour le premier mois d'abonnement, puis 0,50 CHF par mois. Aucun paiement n'est actuellement collecté par ce site. La facturation, les comptes, la résiliation et la synchronisation doivent être développés et testés avant toute annonce commerciale.
-
+Projet de fans non officiel, sans affiliation avec Bandai. One Piece Card Game, ses noms, personnages et illustrations appartiennent à Bandai, Eiichiro Oda, Shueisha et aux autres ayants droit. Le projet ne doit pas laisser croire qu'il est officiel ou approuvé par Bandai. Toute commercialisation doit faire l'objet d'une vérification des droits et autorisations applicables.
