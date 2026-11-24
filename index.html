@@ -109,7 +109,7 @@ header{position:relative;padding:62px 14px 25px}
  <p id="accountStatus" style="color:#9eacc0;margin:6px 0 12px">Connecte-toi pour sauvegarder ta collection et la retrouver sur tes autres appareils.</p>
  
  <div id="accountActions" hidden style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-  <span id="trialStatus"></span><button id="signOut" type="button">Se déconnecter</button>
+  <span id="trialStatus"></span><button id="signOut" type="button">Se déconnecter et changer de compte</button>
  </div>
 </section>
  </div>
@@ -117,13 +117,15 @@ header{position:relative;padding:62px 14px 25px}
 <section id="authGate" class="auth-gate" aria-label="Connexion obligatoire">
  <div class="auth-gate-card">
   <h2>Bienvenue sur One Piece Card Collection</h2>
-  <p>Pour consulter le catalogue, entre ton adresse e-mail. Tu recevras un lien sécurisé : ouvre-le pour accéder au site.</p>
+  <p id="gateIntro">Pour consulter le catalogue, entre ton adresse e-mail. Tu recevras un lien sécurisé : ouvre-le pour accéder au site.</p>
   <form id="authGateForm">
    <input id="gateEmail" type="email" autocomplete="email" placeholder="Ton adresse e-mail" required>
    <button id="gateSend" type="submit">Recevoir mon lien d’accès</button>
   </form>
   <p id="gateStatus" role="status" aria-live="polite">L’adresse e-mail est nécessaire pour accéder au catalogue.</p>
-  <p><strong>Essai initial : 10 jours.</strong> Pour le moment, l’accès restera gratuit ensuite. L’installation sera disponible après la connexion.</p>
+  <p><strong>Essai gratuit : 10 jours.</strong> Après l’essai, l’accès au catalogue sera suspendu, mais ta collection restera sauvegardée. Le bouton de paiement sera activé plus tard.</p>
+  <div id="trialGateActions" hidden style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px"><button id="trialPay" type="button" disabled>Payer — bientôt</button><button id="trialSwitch" type="button">Se déconnecter et changer de compte</button></div>
+  <button id="gateInstall" type="button" style="width:100%;margin-top:10px">Installer l’application</button>
  </div>
 </section>
 <main>
@@ -582,7 +584,6 @@ async function syncCloud(user) {
  if(data){
   const values=Array.isArray(data.collection_data?.owned)?data.collection_data.owned:[];
   const localDiffers=JSON.stringify([...localValues].sort())!==JSON.stringify([...values].sort());
-  // Protéger aussi les changements hors ligne du même compte avant de recharger le Cloud.
   if(localValues.length && localOwner===user.id && localDiffers){
    const keepCloud=confirm('La collection locale et la collection Cloud de ce compte sont différentes.\n\nOK : charger la collection Cloud et conserver une copie locale exportable.\nAnnuler : garder la collection locale et suspendre la synchronisation pour cette session.');
    if(!keepCloud){
@@ -591,14 +592,7 @@ async function syncCloud(user) {
    }
    try{localStorage.setItem('opc-device-backup-'+user.id,JSON.stringify(localValues));updateBackupExportButton();}catch(e){}
   }
-  // Sur un appareil partagé, ne jamais écraser silencieusement une collection
-  // locale qui appartient à un autre compte ou qui n'a pas encore de propriétaire.
   if(localValues.length && localOwner!==user.id){
-   const keepCloud=confirm('Une collection locale existe déjà sur cet appareil.\n\nOK : charger la collection Cloud de ce compte. Une copie locale sera conservée sur cet appareil.\nAnnuler : garder la collection locale et désactiver la synchronisation pour cette session.');
-   if(!keepCloud){
-    setStatus('Collection locale conservée. La synchronisation Cloud est en pause : exporte ta sauvegarde avant de changer de compte.',true);
-    return;
-   }
    const backupKey='opc-device-backup-'+(localOwner||'unassigned');
    try{localStorage.setItem(backupKey,JSON.stringify(localValues));updateBackupExportButton();}catch(e){}
   }
@@ -608,18 +602,15 @@ async function syncCloud(user) {
   window.dispatchEvent(new CustomEvent('opc-cloud-loaded',{detail:{owned:values}}));
   return;
  }
- // Aucun enregistrement Cloud : migrer uniquement après vérification du propriétaire
- // ou après accord explicite de l'utilisateur.
  let values=[];
  if(localOwner===user.id){
   values=localValues;
- }else if(localValues.length){
-  const importLocal=confirm('Une collection enregistrée sur cet appareil ne correspond pas encore à ce compte Cloud.\n\nOK : importer cette collection dans le compte connecté.\nAnnuler : la conserver localement sans l’envoyer au Cloud.');
-  if(!importLocal){
-   setStatus('Collection locale conservée. Elle ne sera pas synchronisée tant que tu n’auras pas choisi de l’importer.',true);
-   return;
-  }
-  values=localValues;
+ }else if(localValues.length && !localOwner){
+  const importLocal=confirm('Une ancienne collection locale sans compte associé existe sur cet appareil.\n\nOK : l’importer dans ce compte.\nAnnuler : la conserver séparément.');
+  if(importLocal) values=localValues;
+  else {try{localStorage.setItem('opc-device-backup-unassigned',JSON.stringify(localValues));updateBackupExportButton();}catch(e){}}
+ }else if(localValues.length && localOwner!==user.id){
+  try{localStorage.setItem('opc-device-backup-'+localOwner,JSON.stringify(localValues));updateBackupExportButton();}catch(e){}
  }
  const {error:saveError}=await supabase.from('user_collections').upsert({user_id:user.id,collection_data:{owned:values},updated_at:new Date().toISOString()});
  if(saveError) throw saveError;
@@ -630,27 +621,50 @@ async function syncCloud(user) {
 }
 async function showSession(session) {
  if(!session?.user){
+  cloudSyncEnabled=false;
   document.body.classList.add('auth-locked');
   $('authGate').hidden=false;
-  $('accountActions').hidden=true;
-  setStatus('Entre ton adresse e-mail puis ouvre le lien reçu pour accéder au catalogue.');
+  $('authGateForm').style.display='grid';
+  $('trialGateActions').hidden=true;
+  $('gateInstall').hidden=false;
+  $('gateIntro').textContent='Pour consulter le catalogue, entre ton adresse e-mail. Tu recevras un lien sécurisé : ouvre-le pour accéder au site.';
   $('gateStatus').textContent='L’adresse e-mail est nécessaire pour accéder au catalogue.';
+  $('accountActions').hidden=true;
+  owned=new Set();
+  render();
+  setStatus('Déconnecté. Entre une autre adresse e-mail pour changer de compte.');
   return;
  }
  try{
   const {data:profile,error}=await supabase.from('profiles').select('trial_ends_at,is_admin').eq('id',session.user.id).single();
   if(error) throw error;
+  await syncCloud(session.user);
   const end=new Date(profile.trial_ends_at);
   const days=Math.max(0,Math.ceil((end-Date.now())/86400000));
-  $('trialStatus').textContent=profile.is_admin?'Compte administrateur — accès illimité':(days>0?'Essai initial : '+days+' jour(s) restant(s) · accès gratuit ensuite pour le moment':'Essai de 10 jours terminé · accès toujours gratuit pour le moment');
   $('accountActions').hidden=false;
+  $('trialStatus').textContent=profile.is_admin?'Accès gratuit permanent':(days>0?'Essai gratuit : '+days+' jour(s) restant(s)':'Essai terminé — collection sauvegardée');
+  if(!profile.is_admin && end.getTime()<=Date.now()){
+   document.body.classList.add('auth-locked');
+   $('authGate').hidden=false;
+   $('authGateForm').style.display='none';
+   $('trialGateActions').hidden=false;
+   $('gateInstall').hidden=false;
+   $('gateIntro').textContent='Ton essai gratuit de 10 jours est terminé. L’accès au catalogue est suspendu, mais toutes tes cartes restent sauvegardées dans ton compte. Le paiement sera disponible prochainement.';
+   $('gateStatus').textContent='Ta collection est conservée. Reconnecte-toi avec le même compte pour la retrouver lorsque l’accès sera réactivé.';
+   setStatus('Essai terminé — collection conservée.');
+   return;
+  }
+  $('authGateForm').style.display='grid';
+  $('trialGateActions').hidden=true;
+  $('gateInstall').hidden=true;
   setStatus('Connecté : '+session.user.email);
   document.body.classList.remove('auth-locked');
   $('authGate').hidden=true;
-  await syncCloud(session.user);
  }catch(e){
   document.body.classList.add('auth-locked');
   $('authGate').hidden=false;
+  $('authGateForm').style.display='grid';
+  $('trialGateActions').hidden=true;
   setStatus('Connexion réussie, mais impossible de charger le compte : '+e.message,true);
   $('gateStatus').textContent='Connexion réussie, mais impossible de charger le compte. Réessaie dans un instant.';
  }
@@ -679,6 +693,12 @@ $('signOut').addEventListener('click',async()=>{
  if(error){setStatus('Déconnexion impossible : '+error.message,true);return;}
  await showSession(null);
 });
+$('trialSwitch').addEventListener('click',async()=>{
+ const {error}=await supabase.auth.signOut();
+ if(error){$('gateStatus').textContent='Déconnexion impossible : '+error.message;return;}
+ await showSession(null);
+});
+$('gateInstall').addEventListener('click',installApp);
 window.addEventListener('opc-owned-changed',async(event)=>{
  const {data:{session}}=await supabase.auth.getSession();
  if(!session?.user||!cloudSyncEnabled)return;
