@@ -29,7 +29,7 @@ Le contrôle confirme que chaque entrée contient un champ URL d'image. Il ne pr
 
 ## Japonais
 
-Le site charge le japonais depuis Koala Kollect. L'historique consulté montre une dernière ingestion de données japonaise le 22 octobre 2026, avant la sortie japonaise d'OP-18, puis un commit de maintien le 21 novembre sans ingestion de cartes. Le catalogue OP-18 japonais doit donc être contrôlé et complété à part dès qu'une source japonaise à jour est disponible. Aucune donnée japonaise n'a été ajoutée dans cet audit.
+Le site charge le japonais depuis les quatre fichiers JSONL de Koala Kollect. Vérification de l'historique GitHub le 24 novembre 2026 :\n\n| Fichier source japonais | Dernier commit visible |\n|---|---|\n| `data/card_observations/jp.jsonl` | 22 octobre 2026 |\n| `data/printings/jp.jsonl` | 8 octobre 2026 |\n| `data/products/jp.jsonl` | 15 octobre 2026 |\n| `data/printing_products/jp.jsonl` | 15 octobre 2026 |\n\nLe dépôt a bien reçu un commit de maintien le 21 novembre, mais les quatre fichiers utilisés par le site n'ont pas été actualisés après la sortie japonaise d'OP-18 (21 novembre). Le catalogue OP-18 japonais reste donc non confirmé et ne peut pas être considéré comme complet. Il faudra attendre une source japonaise à jour, puis comparer les 119 cartes de base et les variantes avant intégration. Aucune donnée japonaise n'a été ajoutée dans cet audit.
 
 ## Conclusion
 
