@@ -254,7 +254,7 @@ footer{max-width:1490px;line-height:1.7}
     <li>Ta collection est sauvegardée dans ton compte et peut être retrouvée sur un autre appareil.</li>
    </ol>
   </div>
-  <div style="display:flex;gap:8px;margin:14px 0 8px">
+  <div id="authModeChoices" style="display:flex;gap:8px;margin:14px 0 8px">
    <button id="authModeSignup" type="button" aria-pressed="false" style="flex:1">Créer un compte</button>
    <button id="authModeLogin" type="button" aria-pressed="true" style="flex:1;border-color:#f5c451">Se connecter</button>
   </div>
@@ -766,6 +766,8 @@ async function showSession(session) {
   document.body.classList.add('auth-locked');
   $('authGate').hidden=false;
   $('authGateForm').style.display='grid';
+  $('authModeChoices').style.display='flex';
+  setAuthMode('login');
   $('trialGateActions').hidden=true;
   $('gateInstall').hidden=false;
   $('gateIntro').textContent='Connecte-toi avec ton adresse e-mail. Une fois cet appareil connecté, ta session reste enregistrée et tu n’as pas besoin de redemander le lien à chaque visite.';
@@ -788,6 +790,7 @@ async function showSession(session) {
    document.body.classList.add('auth-locked');
    $('authGate').hidden=false;
    $('authGateForm').style.display='none';
+   $('authModeChoices').style.display='none';
    $('trialGateActions').hidden=false;
    $('gateInstall').hidden=false;
    $('gateIntro').textContent='Ton essai gratuit de 10 jours est terminé. L’accès au catalogue est suspendu, mais toutes tes cartes restent sauvegardées dans ton compte. Le paiement sera disponible prochainement.';
@@ -827,7 +830,9 @@ $('authGateForm').addEventListener('submit',async(event)=>{
  event.preventDefault();
  const email=$('gateEmail').value.trim().toLowerCase();
  if(!email||!email.includes('@')){setStatus('Entre une adresse e-mail valide.',true);$('gateStatus').textContent='Entre une adresse e-mail valide.';return;}
- $('gateSend').disabled=true;setStatus('Envoi du lien de connexion…');$('gateStatus').textContent='Envoi du lien de connexion…';
+ $('gateSend').disabled=true;
+ const sendingText=authMode==='signup'?'Envoi du lien de création…':'Envoi du lien de connexion…';
+ setStatus(sendingText);$('gateStatus').textContent=sendingText;
  const {error}=await supabase.auth.signInWithOtp({
   email,
   options:{
