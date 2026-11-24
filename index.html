@@ -234,7 +234,7 @@ footer{max-width:1490px;line-height:1.7}
   <h2>Bienvenue sur One Piece Card Collection</h2>
   <p id="gateIntro">Pour consulter le catalogue, entre ton adresse e-mail. Tu recevras un lien sécurisé : ouvre-le pour accéder au site.</p>
   <form id="authGateForm">
-   <input id="gateEmail" type="email" autocomplete="email" placeholder="Ton adresse e-mail" required>
+   <input id="gateEmail" type="email" autocomplete="email" aria-label="Adresse e-mail du compte" placeholder="Ton adresse e-mail" required>
    <button id="gateSend" type="submit">Recevoir mon lien d’accès</button>
   </form>
   <p id="gateStatus" role="status" aria-live="polite">L’adresse e-mail est nécessaire pour accéder au catalogue.</p>
@@ -255,7 +255,7 @@ footer{max-width:1490px;line-height:1.7}
 </div>
 
 <section class="filters" aria-label="Filtres du catalogue">
-<input id="search" type="search" placeholder="Rechercher par nom ou numéro (ex. OP05-119)…">
+<input id="search" type="search" aria-label="Rechercher une carte par nom ou numéro" placeholder="Rechercher par nom ou numéro (ex. OP05-119)…">
 <select id="language" aria-label="Langue">
 <option value="french">Français</option>
 <option value="english">English</option>
@@ -280,7 +280,7 @@ footer{max-width:1490px;line-height:1.7}
  <button id="export" type="button">Exporter ma collection</button>
  <button id="importBtn" type="button">Importer une sauvegarde</button>
  <button id="installBtn" type="button">Installer l’application</button>
- <input id="importFile" type="file" accept="application/json">
+ <input id="importFile" type="file" accept="application/json" aria-label="Fichier de sauvegarde de collection au format JSON">
 </div>
 </main>
 <footer>Projet de fans non officiel et sans affiliation avec Bandai. Les données français/anglais proviennent de <a href="https://github.com/buhbbl/punk-records" target="_blank" rel="noopener">Punk Records</a> ; les données japonaises et DON!! de <a href="https://github.com/hotavocado/koala-kollect-data" target="_blank" rel="noopener">Koala Kollect</a>. One Piece Card Game et ses illustrations appartiennent à leurs ayants droit. Les collections des comptes connectés sont synchronisées avec le Cloud ; exporte régulièrement une sauvegarde JSON par précaution.</footer>
