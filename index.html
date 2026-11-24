@@ -232,7 +232,7 @@ footer{max-width:1490px;line-height:1.7}
 <section id="authGate" class="auth-gate" aria-label="Connexion obligatoire">
  <div class="auth-gate-card">
   <h2>Bienvenue sur One Piece Card Collection</h2>
-  <p id="gateIntro">Connecte-toi avec ton adresse e-mail. Une fois cet appareil connecté, ta session reste enregistrée et tu n’as pas besoin de redemander le lien à chaque visite.</p>
+  <p id="gateIntro">Connecte-toi rapidement avec Google : choisis l’un de tes comptes Google dans la fenêtre qui s’ouvre. Ta session restera enregistrée sur cet appareil.</p>
   <div style="background:#0c1524;border:1px solid #2b3a50;border-radius:12px;padding:14px;margin:14px 0">
    <h3 style="margin:0 0 8px;color:#f5c451;font-size:17px">À quoi sert le site ?</h3>
    <p style="margin:0 0 8px">Un catalogue pour découvrir et organiser les cartes du <strong>One Piece Card Game</strong>. Il sert à retrouver une carte, voir ses différentes versions et suivre celles que tu possèdes.</p>
@@ -248,13 +248,15 @@ footer{max-width:1490px;line-height:1.7}
   <div style="background:#0c1524;border:1px solid #2b3a50;border-radius:12px;padding:14px;margin:14px 0">
    <h3 style="margin:0 0 8px;color:#f5c451;font-size:17px">Comment commencer ?</h3>
    <ol style="margin:0;padding-left:20px;line-height:1.55;color:#c1ccda">
-    <li>Choisis « Créer un compte » si tu viens pour la première fois, ou « Se connecter » si tu as déjà un compte.</li>
-    <li>Entre ton adresse e-mail et ouvre le lien reçu par e-mail pour confirmer la connexion.</li>
+    <li>Appuie sur « Continuer avec Google ».</li>
+    <li>Choisis ton compte Google. Si c’est ta première visite, ton compte sera créé automatiquement.</li>
     <li>Dans le catalogue, utilise la recherche et les filtres, puis marque les cartes que tu possèdes.</li>
     <li>Ta collection est sauvegardée dans ton compte et peut être retrouvée sur un autre appareil.</li>
    </ol>
   </div>
-  <div id="authModeChoices" style="display:flex;gap:8px;margin:14px 0 8px">
+  <button id="googleSignIn" type="button" style="width:100%;margin:14px 0 8px;background:#fff;color:#202124;border:1px solid #dadce0;font-weight:750">Continuer avec Google</button>
+  <p style="margin:4px 0 8px;text-align:center;font-size:12px;color:#9eacc0">Ou utiliser une adresse e-mail</p>
+  <div id="authModeChoices" style="display:flex;gap:8px;margin:8px 0">
    <button id="authModeSignup" type="button" aria-pressed="false" style="flex:1">Créer un compte</button>
    <button id="authModeLogin" type="button" aria-pressed="true" style="flex:1;border-color:#f5c451">Se connecter</button>
   </div>
@@ -824,6 +826,24 @@ function setAuthMode(mode){
  $('gateSend').textContent=signup?'Créer mon compte et recevoir le lien':'Recevoir mon lien de connexion';
  $('gateStatus').textContent=signup?'Entre ton e-mail pour créer ton compte. Tu devras confirmer le lien reçu.':'Entre l’adresse e-mail de ton compte existant pour te connecter.';
 }
+$('googleSignIn').addEventListener('click',async()=>{
+ const button=$('googleSignIn');
+ button.disabled=true;
+ button.textContent='Ouverture de Google…';
+ const {error}=await supabase.auth.signInWithOAuth({
+  provider:'google',
+  options:{
+   redirectTo:'https://murbrique0-dot.github.io/one-piece-card-collection.ch/',
+   queryParams:{prompt:'select_account'}
+  }
+ });
+ if(error){
+  button.disabled=false;
+  button.textContent='Continuer avec Google';
+  $('gateStatus').textContent='Connexion Google impossible : '+error.message;
+  setStatus('Connexion Google impossible : '+error.message,true);
+ }
+});
 $('authModeSignup').addEventListener('click',()=>setAuthMode('signup'));
 $('authModeLogin').addEventListener('click',()=>setAuthMode('login'));
 $('authGateForm').addEventListener('submit',async(event)=>{
