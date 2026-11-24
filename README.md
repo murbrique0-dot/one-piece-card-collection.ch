@@ -29,6 +29,12 @@ Il est recommandé d'exporter régulièrement une sauvegarde JSON depuis le menu
 
 Les index français et anglais recensés dans le projet contiennent respectivement 3 144 et 5 118 versions. OP-18 compte 152 entrées dans chaque index. La source japonaise recensée contient 4 997 versions jusqu'à OP-17 ; OP-18 japonais n'y est pas présent. Ces nombres sont des instantanés de la base et peuvent évoluer. Ils ne constituent pas une garantie d'exhaustivité de toutes les cartes, variantes et promotions.
 
+## Interface et installation
+
+- Interface responsive pour ordinateur et mobile, avec thème sombre, accents dorés et cartes de catalogue.
+- Manifest PWA, icônes 192×192 et 512×512, et service worker pour mettre en cache la coque de l'application.
+- Les données et images des cartes sont chargées depuis des dépôts et services externes ; le catalogue complet n'est donc pas garanti hors connexion.
+
 ## Déploiement
 
 Le dépôt publie le site avec GitHub Pages depuis la branche `main`.
@@ -38,7 +44,8 @@ Site : https://murbrique0-dot.github.io/one-piece-card-collection.ch/
 ## Limites et transparence
 
 - Le bouton de paiement est désactivé : aucun paiement ni abonnement n'est actuellement activé.
-- L'indication d'essai de 10 jours est informative ; elle ne bloque pas l'accès après expiration.
+- Le compte administrateur configuré conserve l'accès permanent. Les autres comptes sont soumis à la période d'essai affichée.
+- Le site affiche un essai de 10 jours et masque le catalogue après expiration pour les comptes non administrateurs. Cette restriction est actuellement appliquée côté interface web uniquement ; elle ne constitue pas une protection serveur suffisante pour un abonnement payant.
 - Les comptes et collections privées sont gérés par Supabase avec des règles d'accès côté base de données. Le catalogue et les fichiers publics du site restent accessibles publiquement.
 - Les liens Cardmarket ouvrent une recherche par numéro de carte ; il faut vérifier la langue et la version exacte sur Cardmarket.
 - Les données et illustrations peuvent être soumises aux conditions de leurs fournisseurs et ayants droit.
