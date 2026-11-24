@@ -224,7 +224,7 @@ footer{max-width:1490px;line-height:1.7}
  <p id="accountStatus" style="color:#9eacc0;margin:6px 0 12px">Connecte-toi pour sauvegarder ta collection et la retrouver sur tes autres appareils.</p>
  
  <div id="accountActions" hidden style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-  <span id="trialStatus"></span><button id="signOut" type="button">Se déconnecter et changer de compte</button>
+  <span id="trialStatus"></span><button id="signOut" type="button">Ajouter / changer de compte</button>
  </div>
 </section>
  </div>
@@ -232,14 +232,14 @@ footer{max-width:1490px;line-height:1.7}
 <section id="authGate" class="auth-gate" aria-label="Connexion obligatoire">
  <div class="auth-gate-card">
   <h2>Bienvenue sur One Piece Card Collection</h2>
-  <p id="gateIntro">Pour consulter le catalogue, entre ton adresse e-mail. Tu recevras un lien sécurisé : ouvre-le pour accéder au site.</p>
+  <p id="gateIntro">Pour consulter le catalogue, connecte-toi une première fois avec ton adresse e-mail. Sur cet appareil, ta session restera enregistrée : tu n’auras pas à redemander le lien à chaque visite.</p>
   <form id="authGateForm">
    <input id="gateEmail" type="email" autocomplete="email" aria-label="Adresse e-mail du compte" placeholder="Ton adresse e-mail" required>
    <button id="gateSend" type="submit">Recevoir mon lien d’accès</button>
   </form>
   <p id="gateStatus" role="status" aria-live="polite">L’adresse e-mail est nécessaire pour accéder au catalogue.</p>
   <p><strong>Essai gratuit : 10 jours.</strong> Après l’essai, l’accès au catalogue sera suspendu, mais ta collection restera sauvegardée. Le bouton de paiement sera activé plus tard.</p>
-  <div id="trialGateActions" hidden style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px"><button id="trialPay" type="button" disabled>Payer — bientôt</button><button id="trialSwitch" type="button">Se déconnecter et changer de compte</button></div>
+  <div id="trialGateActions" hidden style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px"><button id="trialPay" type="button" disabled>Payer — bientôt</button><button id="trialSwitch" type="button">Ajouter / changer de compte</button></div>
   <button id="gateInstall" type="button" style="width:100%;margin-top:10px">Installer l’application</button>
  </div>
 </section>
@@ -658,7 +658,8 @@ if ('serviceWorker' in navigator) { window.addEventListener('load', () => naviga
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 const supabase = createClient(
  'https://tyoxjxnphvptxwuhrmre.supabase.co',
- 'sb_publishable_LUmBLZutv8kSOko9C4qVpg_aSKzPpZL'
+ 'sb_publishable_LUmBLZutv8kSOko9C4qVpg_aSKzPpZL',
+ { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
 );
 const $ = id => document.getElementById(id);
 let pendingEmail = '';
@@ -742,12 +743,12 @@ async function showSession(session) {
   $('authGateForm').style.display='grid';
   $('trialGateActions').hidden=true;
   $('gateInstall').hidden=false;
-  $('gateIntro').textContent='Pour consulter le catalogue, entre ton adresse e-mail. Tu recevras un lien sécurisé : ouvre-le pour accéder au site.';
+  $('gateIntro').textContent='Connecte-toi avec ton adresse e-mail. Une fois cet appareil connecté, ta session reste enregistrée et tu n’as pas besoin de redemander le lien à chaque visite.';
   $('gateStatus').textContent='L’adresse e-mail est nécessaire pour accéder au catalogue.';
   $('accountActions').hidden=true;
   owned=new Set();
   render();
-  setStatus('Déconnecté. Entre une autre adresse e-mail pour changer de compte.');
+  setStatus('Déconnecté. Entre l’adresse e-mail de ton autre compte. Après cette connexion, la session restera enregistrée sur cet appareil.');
   return;
  }
  try{
