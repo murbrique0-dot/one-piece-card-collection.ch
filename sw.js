@@ -1,4 +1,4 @@
-const CACHE_NAME = 'opc-shell-v18';
+const CACHE_NAME = 'opc-shell-v19';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icons/icon-192.png', './icons/icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)));
@@ -17,5 +17,9 @@ self.addEventListener('fetch', event => {
       caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
     }
     return response;
-  }).catch(() => caches.match(event.request).then(cached => cached || caches.match('./index.html'))));
+  }).catch(() => caches.match(event.request).then(cached => {
+    if (cached) return cached;
+    if (event.request.mode === 'navigate') return caches.match('./index.html');
+    return Response.error();
+  })));
 });
