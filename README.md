@@ -26,6 +26,7 @@ Il est recommandé d'exporter régulièrement une sauvegarde JSON depuis le menu
 - Français et anglais : [Punk Records](https://github.com/buhbbl/punk-records).
 - Japonais et DON!! : [Koala Kollect](https://github.com/hotavocado/koala-kollect-data).
 - Les sources sont communautaires. Une URL d'image présente dans une base ne garantit pas que l'image sera toujours accessible.
+- Contrôle du catalogue DON!! : 308 impressions DON!! sont référencées dans l'instantané vérifié ; trois variantes de DON!! Boa Hancock ne disposent pas d'URL d'image dans la source actuelle et peuvent afficher le visuel de remplacement.
 
 Les index français et anglais recensés dans le projet contiennent respectivement 3 144 et 5 118 versions. OP-18 compte 152 entrées dans chaque index. La source japonaise recensée contient 4 997 versions jusqu'à OP-17 ; OP-18 japonais n'y est pas présent. Ces nombres sont des instantanés de la base et peuvent évoluer. Ils ne constituent pas une garantie d'exhaustivité de toutes les cartes, variantes et promotions.
 
